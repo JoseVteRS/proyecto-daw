@@ -16,10 +16,11 @@ import {
 } from "./auth-token.js"
 import { pool } from "./db.js"
 import { hashPassword, verifyPassword } from "./password.js"
+import { authRateLimit } from "./security.js"
 
 export const usersRouter = Router()
 
-usersRouter.post("/register", async (request, response, next) => {
+usersRouter.post("/register", authRateLimit, async (request, response, next) => {
   const parsedInput = registerUserInputSchema.safeParse(request.body)
 
   if (!parsedInput.success) {
@@ -67,7 +68,7 @@ usersRouter.post("/register", async (request, response, next) => {
   }
 })
 
-usersRouter.post("/login", async (request, response, next) => {
+usersRouter.post("/login", authRateLimit, async (request, response, next) => {
   const parsedInput = loginUserInputSchema.safeParse(request.body)
 
   if (!parsedInput.success) {
@@ -115,6 +116,7 @@ usersRouter.post("/login", async (request, response, next) => {
     }
 
     response
+      .set("Cache-Control", "no-store")
       .cookie(authCookieName, token, getAuthCookieOptions())
       .cookie(refreshTokenCookieName, refreshToken, getRefreshTokenCookieOptions())
       .status(200)
