@@ -12,12 +12,13 @@
   "dependencies": {
     "@proyecto-daw/shared": "workspace:*",
     "express": "5.2.1",
+    "jose": "^6.2.3",
     "pg": "8.16.3"
   },
   "devDependencies": {
     "@types/express": "5.0.6",
-    "@types/pg": "8.15.6",
     "@types/node": "22.19.19",
+    "@types/pg": "8.15.6",
     "tsx": "4.22.0",
     "typescript": "6.0.3"
   }

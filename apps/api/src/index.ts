@@ -1,5 +1,6 @@
 import express, { type ErrorRequestHandler } from "express"
 
+import { sessionRouter } from "./session.js"
 import { usersRouter } from "./users.js"
 
 const app = express()
@@ -15,6 +16,7 @@ app.get("/", (_request, response) => {
   response.json({ name: "PROYECTO-DAW-V2 API" })
 })
 
+app.use("/api", sessionRouter)
 app.use("/users", usersRouter)
 
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
