@@ -12,7 +12,7 @@ sessionRouter.get("/session", async (request, response, next) => {
   const refreshToken = cookies[refreshTokenCookieName]
 
   if (!token || !refreshToken) {
-    response.status(200).json(null)
+    response.set("Cache-Control", "no-store").status(200).json(null)
     return
   }
 
@@ -24,9 +24,9 @@ sessionRouter.get("/session", async (request, response, next) => {
       refresh_token: refreshToken,
     }
 
-    response.status(200).json(body)
+    response.set("Cache-Control", "no-store").status(200).json(body)
   } catch (error) {
-    response.status(200).json(null)
+    response.set("Cache-Control", "no-store").status(200).json(null)
   }
 })
 
