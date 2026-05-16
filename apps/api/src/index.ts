@@ -1,5 +1,7 @@
 import express, { type ErrorRequestHandler } from "express"
 
+import { categoriesRouter } from "./categories.js"
+import { eventsRouter } from "./events.js"
 import { sessionRouter } from "./session.js"
 import { usersRouter } from "./users.js"
 
@@ -17,6 +19,8 @@ app.get("/", (_request, response) => {
 })
 
 app.use("/api", sessionRouter)
+app.use("/categories", categoriesRouter)
+app.use("/events", eventsRouter)
 app.use("/users", usersRouter)
 
 const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
