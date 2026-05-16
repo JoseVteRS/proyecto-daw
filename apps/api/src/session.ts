@@ -2,6 +2,7 @@ import { Router } from "express"
 import { type SessionResponse } from "@proyecto-daw/shared"
 
 import { authCookieName, refreshTokenCookieName, verifyAuthToken } from "./auth-token.js"
+import { parseCookies } from "./cookies.js"
 
 export const sessionRouter = Router()
 
@@ -29,23 +30,3 @@ sessionRouter.get("/session", async (request, response, next) => {
   }
 })
 
-function parseCookies(cookieHeader: string | undefined): Record<string, string> {
-  if (!cookieHeader) {
-    return {}
-  }
-
-  return Object.fromEntries(
-    cookieHeader.split(";").flatMap((cookie) => {
-      const separatorIndex = cookie.indexOf("=")
-
-      if (separatorIndex === -1) {
-        return []
-      }
-
-      const key = cookie.slice(0, separatorIndex).trim()
-      const value = cookie.slice(separatorIndex + 1).trim()
-
-      return [[key, decodeURIComponent(value)]]
-    }),
-  )
-}
