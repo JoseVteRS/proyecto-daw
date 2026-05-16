@@ -8,8 +8,8 @@
     "dev": "pnpm -r --parallel --filter api --filter web dev",
     "dev:api": "pnpm --filter api dev",
     "dev:web": "pnpm --filter web dev",
-    "build": "pnpm -r --filter api --filter web build",
-    "typecheck": "pnpm -r --filter api --filter web typecheck"
+    "build": "pnpm -r --filter @proyecto-daw/shared --filter api --filter web build",
+    "typecheck": "pnpm -r --filter @proyecto-daw/shared --filter api --filter web typecheck"
   },
   "devDependencies": {
     "turbo": "^2.6.3",
