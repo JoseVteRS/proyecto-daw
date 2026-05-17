@@ -7,6 +7,7 @@ import {
 
 import { requireSession } from "./auth-middleware.js"
 import { pool } from "./db.js"
+import { isInvalidUuid, isUniqueViolation } from "./db/postgres-errors.js"
 
 export const categoriesRouter = Router()
 
@@ -169,10 +170,3 @@ categoriesRouter.delete("/:id", requireSession, async (request, response, next) 
   }
 })
 
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23505"
-}
-
-function isInvalidUuid(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "22P02"
-}

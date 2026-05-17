@@ -3,6 +3,7 @@ import { createEventInputSchema, type EventResponse } from "@proyecto-daw/shared
 
 import { requireSession } from "./auth-middleware.js"
 import { pool } from "./db.js"
+import { isCheckViolation, isForeignKeyViolation } from "./db/postgres-errors.js"
 
 export const eventsRouter = Router()
 
@@ -84,10 +85,3 @@ eventsRouter.post("/", requireSession, async (request, response, next) => {
   }
 })
 
-function isForeignKeyViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23503"
-}
-
-function isCheckViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23514"
-}

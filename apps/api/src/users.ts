@@ -15,6 +15,7 @@ import {
   refreshTokenCookieName,
 } from "./auth-token.js"
 import { pool } from "./db.js"
+import { isUniqueViolation } from "./db/postgres-errors.js"
 import { hashPassword, verifyPassword } from "./password.js"
 import { authRateLimit } from "./security.js"
 
@@ -126,6 +127,3 @@ usersRouter.post("/login", authRateLimit, async (request, response, next) => {
   }
 })
 
-function isUniqueViolation(error: unknown): boolean {
-  return typeof error === "object" && error !== null && "code" in error && error.code === "23505"
-}
