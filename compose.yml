@@ -1,0 +1,121 @@
+name: proyecto-daw-v2
+
+x-node-dev: &node-dev
+  image: node:24-bookworm-slim
+  working_dir: /app
+  environment:
+    PNPM_HOME: /pnpm
+    PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  volumes:
+    - .:/app
+    - pnpm-store:/pnpm/store
+    - root-node-modules:/app/node_modules
+    - api-node-modules:/app/apps/api/node_modules
+    - web-node-modules:/app/apps/web/node_modules
+    - shared-node-modules:/app/packages/shared/node_modules
+  command: >
+    sh -lc "corepack enable && corepack prepare pnpm@11.1.2 --activate && pnpm install --frozen-lockfile && pnpm dev"
+
+services:
+  postgres:
+    image: postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: proyecto_daw
+      POSTGRES_USER: proyecto_daw
+      POSTGRES_PASSWORD: proyecto_daw
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proyecto_daw -d proyecto_daw"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api-dev:
+    <<: *node-dev
+    restart: unless-stopped
+    environment:
+      PNPM_HOME: /pnpm
+      PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgresql://proyecto_daw:proyecto_daw@postgres:5432/proyecto_daw
+      JWT_SECRET: 01234567890123456789012345678901
+      CORS_ORIGIN: http://localhost:3000
+    ports:
+      - "4000:4000"
+    command: >
+      sh -lc "corepack enable && corepack prepare pnpm@11.1.2 --activate && pnpm install --frozen-lockfile && pnpm dev:api"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web-dev:
+    <<: *node-dev
+    restart: unless-stopped
+    environment:
+      PNPM_HOME: /pnpm
+      PATH: /pnpm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    command: >
+      sh -lc "corepack enable && corepack prepare pnpm@11.1.2 --activate && pnpm install --frozen-lockfile && pnpm dev:web"
+    depends_on:
+      - api-dev
+
+  api:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_URL: ${DATABASE_URL:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:3000}
+    ports:
+      - "4000:4000"
+
+  web:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  pnpm-store:
+  root-node-modules:
+  api-node-modules:
+  web-node-modules:
+  shared-node-modules:
