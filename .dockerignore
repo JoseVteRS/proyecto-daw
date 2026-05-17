@@ -1,0 +1,12 @@
+node_modules
+**/node_modules
+.git
+.gitignore
+.DS_Store
+.env
+.env.*
+!apps/api/.env.local
+**/dist
+**/.output
+**/.turbo
+**/coverage
