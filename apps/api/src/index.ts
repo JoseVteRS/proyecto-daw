@@ -2,6 +2,7 @@ import express, { type ErrorRequestHandler } from "express"
 
 import { categoriesRouter } from "./categories.js"
 import { eventsRouter } from "./events.js"
+import { logger, requestLogger } from "./logger.js"
 import { sessionRouter } from "./session.js"
 import { corsMiddleware, globalRateLimit, requireJsonContentType, securityHeaders } from "./security.js"
 import { usersRouter } from "./users.js"
@@ -13,6 +14,7 @@ app.disable("x-powered-by")
 app.use(securityHeaders)
 app.use(corsMiddleware)
 app.use(globalRateLimit)
+app.use(requestLogger)
 app.use(requireJsonContentType)
 app.use(express.json({ limit: "100kb" }))
 
@@ -29,18 +31,27 @@ app.use("/categories", categoriesRouter)
 app.use("/events", eventsRouter)
 app.use("/users", usersRouter)
 
-const errorHandler: ErrorRequestHandler = (error, _request, response, _next) => {
+const errorHandler: ErrorRequestHandler = (error, request, response, _next) => {
   if (isCorsError(error)) {
+    logger.warn({ error: formatError(error), origin: request.headers.origin }, "cors origin rejected")
     response.status(403).json({ error: "CORS_ORIGIN_NOT_ALLOWED" })
     return
   }
 
   if (isJsonSyntaxError(error)) {
+    logger.warn({ error: formatError(error), path: request.originalUrl }, "invalid json payload")
     response.status(400).json({ error: "INVALID_JSON" })
     return
   }
 
-  console.error(error)
+  logger.error(
+    {
+      error: formatError(error),
+      method: request.method,
+      path: request.originalUrl,
+    },
+    "unhandled server error",
+  )
   response.status(500).json({ error: "INTERNAL_SERVER_ERROR" })
 }
 
@@ -59,8 +70,21 @@ function isJsonSyntaxError(error: unknown): boolean {
   )
 }
 
+function formatError(error: unknown) {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      cause: error.cause,
+    }
+  }
+
+  return { message: String(error) }
+}
+
 app.use(errorHandler)
 
 app.listen(port, () => {
-  console.log(`API escuchando en http://localhost:${port}`)
+  logger.info({ port }, `API escuchando en http://localhost:${port}`)
 })
