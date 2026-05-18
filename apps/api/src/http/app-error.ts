@@ -1,4 +1,9 @@
-export type AppErrorCode = "EMAIL_ALREADY_REGISTERED" | "INVALID_CREDENTIALS"
+export type AppErrorCode =
+  | "CATEGORY_ALREADY_EXISTS"
+  | "CATEGORY_NOT_FOUND"
+  | "EMAIL_ALREADY_REGISTERED"
+  | "INVALID_CATEGORY_ID"
+  | "INVALID_CREDENTIALS"
 
 export class AppError extends Error {
   constructor(readonly code: AppErrorCode) {
