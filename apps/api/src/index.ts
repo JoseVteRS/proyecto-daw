@@ -1,11 +1,11 @@
 import express, { type ErrorRequestHandler } from "express"
 
-import { categoriesRouter } from "./categories.js"
-import { eventsRouter } from "./events.js"
+import { sessionRouter } from "./modules/auth/session.routes.js"
+import { categoriesRouter } from "./modules/categories/categories.routes.js"
+import { eventsRouter } from "./modules/events/events.routes.js"
+import { usersRouter } from "./modules/users/users.routes.js"
 import { logger, requestLogger } from "./logger.js"
-import { sessionRouter } from "./session.js"
 import { corsMiddleware, globalRateLimit, requireJsonContentType, securityHeaders } from "./security.js"
-import { usersRouter } from "./users.js"
 
 const app = express()
 const port = Number(process.env.PORT ?? 4000)
