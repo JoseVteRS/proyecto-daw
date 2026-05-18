@@ -4,6 +4,8 @@ export type AppErrorCode =
   | "EMAIL_ALREADY_REGISTERED"
   | "INVALID_CATEGORY_ID"
   | "INVALID_CREDENTIALS"
+  | "INVALID_EVENT_DATE_RANGE"
+  | "INVALID_EVENT_RELATION"
 
 export class AppError extends Error {
   constructor(readonly code: AppErrorCode) {
