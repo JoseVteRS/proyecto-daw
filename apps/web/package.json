@@ -2,9 +2,6 @@
   "name": "web",
   "private": true,
   "type": "module",
-  "imports": {
-    "#/*": "./src/*"
-  },
   "scripts": {
     "dev": "vite dev --port 3000 --host",
     "build": "vite build",
@@ -16,18 +13,23 @@
     "check": "prettier --check ."
   },
   "dependencies": {
+    "@base-ui-components/react": "1.0.0-rc.0",
     "@proyecto-daw/shared": "workspace:*",
     "@tailwindcss/vite": "4.1.18",
     "@tanstack/react-devtools": "latest",
+    "@tanstack/react-form": "^1.32.0",
     "@tanstack/react-router": "latest",
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-router-ssr-query": "latest",
     "@tanstack/react-start": "latest",
     "@tanstack/router-plugin": "1.132.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "lucide-react": "0.545.0",
     "nitro": "npm:nitro-nightly@latest",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "tailwind-merge": "^3.6.0",
     "tailwindcss": "4.1.18"
   },
   "devDependencies": {
