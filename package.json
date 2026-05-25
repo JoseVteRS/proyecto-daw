@@ -8,6 +8,7 @@
     "dev": "pnpm -r --parallel --filter api --filter web dev",
     "dev:api": "pnpm --filter api dev",
     "dev:web": "pnpm --filter web dev",
+    "db:create": "bash ./scripts/create-db.sh",
     "build": "pnpm -r --filter @proyecto-daw/shared --filter api --filter web build",
     "typecheck": "pnpm -r --filter @proyecto-daw/shared --filter api --filter web typecheck"
   },
