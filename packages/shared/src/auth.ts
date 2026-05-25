@@ -29,6 +29,10 @@ export const loginUserResponseSchema = z.object({
   refresh_token: z.string().min(1),
 })
 
+export const meResponseSchema = z.object({
+  user: authUserSchema,
+})
+
 export const sessionResponseSchema = z
   .object({
     token: z.string().min(1),
@@ -40,4 +44,5 @@ export type RegisterUserInput = z.infer<typeof registerUserInputSchema>
 export type RegisterUserResponse = z.infer<typeof registerUserResponseSchema>
 export type LoginUserInput = z.infer<typeof loginUserInputSchema>
 export type LoginUserResponse = z.infer<typeof loginUserResponseSchema>
+export type MeResponse = z.infer<typeof meResponseSchema>
 export type SessionResponse = z.infer<typeof sessionResponseSchema>
