@@ -1,8 +1,10 @@
 import {
   loginUserResponseSchema,
+  meResponseSchema,
   registerUserResponseSchema,
   type LoginUserInput,
   type LoginUserResponse,
+  type MeResponse,
   type RegisterUserInput,
   type RegisterUserResponse,
 } from '@proyecto-daw/shared'
@@ -41,6 +43,41 @@ export async function loginUser(input: LoginUserInput): Promise<LoginUserRespons
   }
 
   return loginUserResponseSchema.parse(body)
+}
+
+export async function getMe(): Promise<MeResponse | null> {
+  const response = await fetch(`${apiBaseUrl}/api/me`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+
+  if (response.status === 401) {
+    return null
+  }
+
+  const body = await parseJson(response)
+
+  if (!response.ok) {
+    throw new ApiError(getErrorMessage(body, 'No se ha podido recuperar la sesión.'), response.status)
+  }
+
+  return meResponseSchema.parse(body)
+}
+
+export async function logoutUser(): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/api/logout`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: '{}',
+  })
+
+  if (response.ok) {
+    return
+  }
+
+  const body = await parseJson(response)
+  throw new ApiError(getErrorMessage(body, 'No se ha podido cerrar sesión.'), response.status)
 }
 
 export class ApiError extends Error {

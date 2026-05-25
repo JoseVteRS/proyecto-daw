@@ -6,12 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useAuth } from '@/modules/auth/ui/auth-context'
 
 
 import { loginUser } from '../../server/api'
 
 export function LoginForm() {
   const navigate = useNavigate()
+  const { setUser } = useAuth()
   const [error, setError] = useState<string | null>(null)
   const form = useForm({
     defaultValues: {
@@ -21,8 +23,9 @@ export function LoginForm() {
     onSubmit: async ({ value }) => {
       setError(null)
       try {
-        await loginUser(value)
-        await navigate({ to: '/' })
+        const response = await loginUser(value)
+        setUser(response.user)
+        await navigate({ to: '/app' })
       } catch (caughtError) {
         setError(caughtError instanceof Error ? caughtError.message : 'Ha ocurrido un error inesperado.')
       }
