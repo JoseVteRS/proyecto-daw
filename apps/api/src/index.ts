@@ -1,8 +1,11 @@
+import "./load-env.js"
 import express, { type ErrorRequestHandler } from "express"
 
+import { logoutRouter } from "./modules/auth/logout.routes.js"
 import { sessionRouter } from "./modules/auth/session.routes.js"
 import { categoriesRouter } from "./modules/categories/categories.routes.js"
 import { eventsRouter } from "./modules/events/events.routes.js"
+import { meRouter } from "./modules/users/me.routes.js"
 import { usersRouter } from "./modules/users/users.routes.js"
 import { logger, requestLogger } from "./logger.js"
 import { corsMiddleware, globalRateLimit, requireJsonContentType, securityHeaders } from "./security.js"
@@ -27,6 +30,8 @@ app.get("/", (_request, response) => {
 })
 
 app.use("/api", sessionRouter)
+app.use("/api", meRouter)
+app.use("/api", logoutRouter)
 app.use("/categories", categoriesRouter)
 app.use("/events", eventsRouter)
 app.use("/users", usersRouter)

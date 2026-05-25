@@ -18,6 +18,7 @@ export type UserWithPasswordRecord = UserRecord & {
 export type UsersRepository = {
   create(data: CreateUserData): Promise<UserRecord>
   findByEmail(email: string): Promise<UserWithPasswordRecord | null>
+  findById(id: string): Promise<UserRecord | null>
 }
 
 export type PasswordService = {

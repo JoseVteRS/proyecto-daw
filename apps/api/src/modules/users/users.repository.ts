@@ -59,6 +59,23 @@ export class PostgresUsersRepository implements UsersRepository {
       passwordHash: row.password_hash,
     }
   }
+
+  async findById(id: string): Promise<UserRecord | null> {
+    const result = await this.database.query<UserRow>(
+      `SELECT id, role_id, name, email, created_at
+       FROM users
+       WHERE id = $1`,
+      [id],
+    )
+
+    const row = result.rows[0]
+
+    if (!row) {
+      return null
+    }
+
+    return toUserRecord(row)
+  }
 }
 
 function toUserRecord(row: UserRow): UserRecord {

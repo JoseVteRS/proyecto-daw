@@ -22,6 +22,13 @@ function createRepository(overrides: Partial<UsersRepository> = {}): UsersReposi
       passwordHash: "hash",
       createdAt,
     }),
+    findById: vi.fn().mockResolvedValue({
+      id: "user-1",
+      roleId: 1,
+      name: "Ada",
+      email: "ada@example.com",
+      createdAt,
+    }),
     ...overrides,
   }
 }
