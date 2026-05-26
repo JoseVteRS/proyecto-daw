@@ -8,9 +8,9 @@ type MonthHeaderProps = {
 
 export function MonthHeader({ label }: MonthHeaderProps) {
   return (
-    <section className="mt-4 mb-3">
-      <div className="mb-3 flex items-center justify-between">
-        <h1 className="text-4xl font-semibold leading-none">{label}</h1>
+    <section className="mt-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold leading-none">{label}</h2>
         <div className="flex items-center gap-1">
           <Button aria-label="Mes anterior" size="icon" variant="ghost">
             <ChevronLeft className="size-4" />

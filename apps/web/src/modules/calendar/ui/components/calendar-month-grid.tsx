@@ -1,9 +1,11 @@
 import { cn } from '@/lib/utils'
 import { buildMonthMatrix, isToday } from '@/modules/calendar/lib/calendar'
-import type { CalendarEvent } from '@/modules/calendar/ui/data/mock-events'
 import { EventChip } from '@/modules/calendar/ui/components/event-chip'
+import { useCalendarSelectedDate } from '@/modules/calendar/ui/context/calendar-selected-date-context'
+import type { CalendarEvent } from '@/modules/calendar/ui/data/mock-events'
+import { Link } from '@tanstack/react-router'
 
-const weekDays = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
+const weekDays = ['lun', 'mar', 'mié', 'jue', 'vie', 'sáb', 'dom']
 
 type CalendarMonthGridProps = {
   monthDate: Date
@@ -11,6 +13,7 @@ type CalendarMonthGridProps = {
 }
 
 export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps) {
+  const { setSelectedDate } = useCalendarSelectedDate()
   const month = monthDate.getMonth()
   const weeks = buildMonthMatrix(monthDate)
   const eventsByDate = groupEventsByDate(events)
@@ -25,14 +28,19 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
         ))}
       </div>
 
-      <div className="grid grid-cols-7">
+      <div className="grid grid-cols-7 min-h-[95dvh]">
         {weeks.flat().map((day) => {
           const dayKey = formatDateKey(day)
           const dayEvents = eventsByDate[dayKey] ?? []
           const isCurrentMonth = day.getMonth() === month
 
           return (
-            <article className="min-h-20 border-b border-r border-border p-1.5" key={dayKey}>
+            <Link
+              to="/app/crear-evento"
+              className="block min-h-20 border-b border-r border-border p-1.5"
+              key={dayKey}
+              onClick={() => setSelectedDate(new Date(day))}
+            >
               <div
                 className={cn(
                   'mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs font-medium',
@@ -48,7 +56,7 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
                   <EventChip key={event.id} event={event} />
                 ))}
               </div>
-            </article>
+            </Link>
           )
         })}
       </div>
