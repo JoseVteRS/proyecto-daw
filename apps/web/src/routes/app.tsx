@@ -1,7 +1,9 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
 
 import { getMe } from '@/modules/auth/server/api'
-import { CalendarView } from '@/modules/calendar/ui/views/calendar-view'
+import { AppHeader } from '@/modules/calendar/ui/components/app-header'
+import { BottomNav } from '@/modules/calendar/ui/components/bottom-nav'
+import { CalendarSelectedDateProvider } from '@/modules/calendar/ui/context/calendar-selected-date-context'
 
 export const Route = createFileRoute('/app')({
   beforeLoad: async () => {
@@ -15,5 +17,19 @@ export const Route = createFileRoute('/app')({
       throw redirect({ to: '/auth/login' })
     }
   },
-  component: CalendarView,
+  component: AppRoute,
 })
+
+function AppRoute() {
+  return (
+    <CalendarSelectedDateProvider>
+      <main>
+        <AppHeader />
+        <div>
+          <Outlet />
+        </div>
+        <BottomNav />
+      </main>
+    </CalendarSelectedDateProvider>
+  )
+}
