@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { createEventInputSchema, listEventsQuerySchema } from "@proyecto-daw/shared"
+import { createEventInputSchema, listEventsQuerySchema, updateEventInputSchema } from "@proyecto-daw/shared"
 
 import { requireSession } from "../../auth-middleware.js"
 import { AppError } from "../../http/app-error.js"
@@ -51,17 +51,44 @@ export function createEventsRouter(eventsService = new EventsService(new Postgre
 
       response.status(201).json(body)
     } catch (error) {
-      if (error instanceof AppError && error.code === "INVALID_EVENT_RELATION") {
-        response.status(400).json({ error: error.code })
-        return
-      }
+      handleEventError(error, response, next)
+    }
+  })
 
-      if (error instanceof AppError && error.code === "INVALID_EVENT_DATE_RANGE") {
-        response.status(400).json({ error: error.code })
-        return
-      }
+  router.patch("/:id", requireSession, async (request, response, next) => {
+    const parsedInput = updateEventInputSchema.safeParse(request.body)
 
-      next(error)
+    if (!parsedInput.success) {
+      response.status(400).json({
+        error: "VALIDATION_ERROR",
+        issues: parsedInput.error.issues,
+      })
+      return
+    }
+
+    try {
+      const body = await eventsService.update({
+        id: String(request.params.id),
+        userId: request.session!.userId,
+        ...parsedInput.data,
+      })
+
+      response.status(200).json(body)
+    } catch (error) {
+      handleEventError(error, response, next)
+    }
+  })
+
+  router.delete("/:id", requireSession, async (request, response, next) => {
+    try {
+      await eventsService.delete({
+        id: String(request.params.id),
+        userId: request.session!.userId,
+      })
+
+      response.status(204).send()
+    } catch (error) {
+      handleEventError(error, response, next)
     }
   })
 
@@ -69,3 +96,20 @@ export function createEventsRouter(eventsService = new EventsService(new Postgre
 }
 
 export const eventsRouter = createEventsRouter()
+
+function handleEventError(error: unknown, response: { status: (code: number) => { json: (body: unknown) => void; send: () => void } }, next: (error: unknown) => void) {
+  if (error instanceof AppError) {
+    const statusCodeByError = {
+      INVALID_EVENT_RELATION: 400,
+      INVALID_EVENT_DATE_RANGE: 400,
+      EVENT_NOT_FOUND: 404,
+    } as const
+
+    if (error.code in statusCodeByError) {
+      response.status(statusCodeByError[error.code as keyof typeof statusCodeByError]).json({ error: error.code })
+      return
+    }
+  }
+
+  next(error)
+}

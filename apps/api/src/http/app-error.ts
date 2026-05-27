@@ -6,6 +6,7 @@ export type AppErrorCode =
   | "INVALID_CREDENTIALS"
   | "INVALID_EVENT_DATE_RANGE"
   | "INVALID_EVENT_RELATION"
+  | "EVENT_NOT_FOUND"
 
 export class AppError extends Error {
   constructor(readonly code: AppErrorCode) {

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 
+import { AppError } from "../../http/app-error.js"
 import { EventsService, type EventsRepository } from "./events.service.js"
 
 const createdAt = new Date("2026-01-02T03:04:05.000Z")
@@ -21,6 +22,8 @@ function createRepository(overrides: Partial<EventsRepository> = {}): EventsRepo
       createdAt,
       updatedAt,
     }),
+    update: vi.fn().mockResolvedValue(null),
+    delete: vi.fn().mockResolvedValue(false),
     list: vi.fn().mockResolvedValue([]),
     ...overrides,
   }
@@ -123,6 +126,75 @@ describe("EventsService", () => {
       userId: "user-1",
       from: null,
       to: null,
+    })
+  })
+
+  it("updates an event and maps the response", async () => {
+    const update = vi.fn().mockResolvedValue({
+      id: "event-1",
+      userId: "user-1",
+      categoryId: null,
+      priorityId: 3,
+      name: "Updated meeting",
+      description: "Updated description",
+      eventDateStart,
+      eventDateEnd,
+      createdAt,
+      updatedAt,
+    })
+    const repository = createRepository({ update })
+    const service = new EventsService(repository)
+
+    const response = await service.update({
+      id: "event-1",
+      userId: "user-1",
+      name: "Updated meeting",
+      description: "Updated description",
+      priorityId: 3,
+      eventDateStart,
+      eventDateEnd,
+    })
+
+    expect(update).toHaveBeenCalledWith({
+      id: "event-1",
+      userId: "user-1",
+      name: "Updated meeting",
+      description: "Updated description",
+      priorityId: 3,
+      categoryId: undefined,
+      eventDateStart,
+      eventDateEnd,
+    })
+    expect(response.event.name).toBe("Updated meeting")
+  })
+
+  it("throws EVENT_NOT_FOUND when update does not find the event", async () => {
+    const update = vi.fn().mockResolvedValue(null)
+    const repository = createRepository({ update })
+    const service = new EventsService(repository)
+
+    await expect(
+      service.update({
+        id: "missing-event",
+        userId: "user-1",
+        name: "Updated meeting",
+      }),
+    ).rejects.toMatchObject({ code: "EVENT_NOT_FOUND" } satisfies Partial<AppError>)
+  })
+
+  it("deletes an event", async () => {
+    const remove = vi.fn().mockResolvedValue(true)
+    const repository = createRepository({ delete: remove })
+    const service = new EventsService(repository)
+
+    await service.delete({
+      id: "event-1",
+      userId: "user-1",
+    })
+
+    expect(remove).toHaveBeenCalledWith({
+      id: "event-1",
+      userId: "user-1",
     })
   })
 })
