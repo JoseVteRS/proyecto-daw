@@ -1,4 +1,4 @@
-import { type EventResponse } from "@proyecto-daw/shared"
+import { type EventListResponse, type EventResponse } from "@proyecto-daw/shared"
 
 export type EventRecord = {
   id: string
@@ -27,5 +27,11 @@ export function toEventResponse(event: EventRecord): EventResponse {
       createdAt: event.createdAt.toISOString(),
       updatedAt: event.updatedAt.toISOString(),
     },
+  }
+}
+
+export function toEventListResponse(events: EventRecord[]): EventListResponse {
+  return {
+    events: events.map((event) => toEventResponse(event).event),
   }
 }

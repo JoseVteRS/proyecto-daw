@@ -29,5 +29,16 @@ export const eventResponseSchema = z.object({
   }),
 })
 
+export const listEventsQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+})
+
+export const eventListResponseSchema = z.object({
+  events: z.array(eventResponseSchema.shape.event),
+})
+
 export type CreateEventInput = z.infer<typeof createEventInputSchema>
 export type EventResponse = z.infer<typeof eventResponseSchema>
+export type ListEventsQuery = z.infer<typeof listEventsQuerySchema>
+export type EventListResponse = z.infer<typeof eventListResponseSchema>

@@ -1,5 +1,5 @@
 import { Router } from "express"
-import { createEventInputSchema } from "@proyecto-daw/shared"
+import { createEventInputSchema, listEventsQuerySchema } from "@proyecto-daw/shared"
 
 import { requireSession } from "../../auth-middleware.js"
 import { AppError } from "../../http/app-error.js"
@@ -8,6 +8,29 @@ import { EventsService } from "./events.service.js"
 
 export function createEventsRouter(eventsService = new EventsService(new PostgresEventsRepository())) {
   const router = Router()
+
+  router.get("/", requireSession, async (request, response, next) => {
+    const parsedQuery = listEventsQuerySchema.safeParse(request.query)
+
+    if (!parsedQuery.success) {
+      response.status(400).json({
+        error: "VALIDATION_ERROR",
+        issues: parsedQuery.error.issues,
+      })
+      return
+    }
+
+    try {
+      const body = await eventsService.list({
+        userId: request.session!.userId,
+        ...parsedQuery.data,
+      })
+
+      response.status(200).json(body)
+    } catch (error) {
+      next(error)
+    }
+  })
 
   router.post("/", requireSession, async (request, response, next) => {
     const parsedInput = createEventInputSchema.safeParse(request.body)
