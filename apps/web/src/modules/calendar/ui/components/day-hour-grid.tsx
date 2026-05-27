@@ -5,12 +5,13 @@ import type { CalendarEvent } from '@/modules/calendar/ui/data/mock-events'
 type DayHourGridProps = {
   highlightedHour?: number
   onSelectHour?: (hour: number) => void
+  onSelectEvent?: (eventId: string) => void
   events?: Array<CalendarEvent>
 }
 
 const HOUR_PX = 44
 
-export function DayHourGrid({ highlightedHour, onSelectHour, events = [] }: DayHourGridProps) {
+export function DayHourGrid({ highlightedHour, onSelectHour, onSelectEvent, events = [] }: DayHourGridProps) {
   return (
     <div className="relative" style={{ height: HOUR_PX * 24 }}>
       {Array.from({ length: 24 }, (_, hour) => (
@@ -40,9 +41,12 @@ export function DayHourGrid({ highlightedHour, onSelectHour, events = [] }: DayH
           const eventHeight = ((event.endMinutes - event.startMinutes) / 60) * HOUR_PX
 
           return (
-            <div
+            <button
               key={event.id}
-              className="pointer-events-auto absolute inset-x-0 px-0.5"
+              type="button"
+              onClick={() => onSelectEvent?.(event.id)}
+              aria-label={`Ver evento ${event.title}`}
+              className="pointer-events-auto absolute inset-x-0 px-0.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               style={{
                 top: (event.startMinutes / 60) * HOUR_PX,
                 height: Math.max(eventHeight, 18),
@@ -51,9 +55,9 @@ export function DayHourGrid({ highlightedHour, onSelectHour, events = [] }: DayH
               <EventChip
                 event={event}
                 showTime={false}
-                className="mt-0 flex h-full w-full items-start rounded-md px-2 py-1 text-xs leading-tight"
+                className="mt-0 flex h-full w-full cursor-pointer items-start rounded-md px-2 py-1 text-xs leading-tight"
               />
-            </div>
+            </button>
           )
         })}
       </div>
