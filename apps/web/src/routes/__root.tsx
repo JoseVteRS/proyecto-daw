@@ -1,8 +1,10 @@
 import { TanStackDevtools } from '@tanstack/react-devtools'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { type ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 
+import { createQueryClient } from '@/lib/query-client'
 import { AuthProvider } from '@/modules/auth/ui/auth-context'
 import appCss from '../styles.css?url'
 
@@ -31,13 +33,17 @@ export const Route = createRootRoute({
 })
 
 function RootDocument({ children }: { children: ReactNode }) {
+  const [queryClient] = useState(createQueryClient)
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>{children}</AuthProvider>
+        </QueryClientProvider>
         <TanStackDevtools
           config={{
             position: 'bottom-right',

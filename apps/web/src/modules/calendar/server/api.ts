@@ -1,6 +1,8 @@
 import {
+  eventListResponseSchema,
   eventResponseSchema,
   type CreateEventInput,
+  type EventListResponse,
   type EventResponse,
 } from '@proyecto-daw/shared'
 
@@ -21,6 +23,31 @@ export async function createEvent(input: CreateEventInput): Promise<EventRespons
   }
 
   return eventResponseSchema.parse(body)
+}
+
+export async function listEvents(query?: { from?: string; to?: string }): Promise<EventListResponse> {
+  const queryParams = new URLSearchParams()
+  if (query?.from) {
+    queryParams.set('from', query.from)
+  }
+  if (query?.to) {
+    queryParams.set('to', query.to)
+  }
+  const search = queryParams.toString()
+  const path = search ? `/events?${search}` : '/events'
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+
+  const body = await parseJson(response)
+
+  if (!response.ok) {
+    throw new ApiError(getErrorMessage(body, 'No se han podido recuperar los eventos.'), response.status)
+  }
+
+  return eventListResponseSchema.parse(body)
 }
 
 export class ApiError extends Error {
