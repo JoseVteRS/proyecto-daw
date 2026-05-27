@@ -10,12 +10,14 @@ const chipColorClasses: Record<CalendarEvent['color'], string> = {
 
 type EventChipProps = {
   event: CalendarEvent
+  showTime?: boolean
+  className?: string
 }
 
-export function EventChip({ event }: EventChipProps) {
+export function EventChip({ event, showTime = true, className }: EventChipProps) {
   return (
-    <Badge className={cn('mt-1 max-w-full truncate rounded-sm px-1.5 py-0 text-[10px] font-medium', chipColorClasses[event.color])}>
-      {event.time} {event.title}
+    <Badge className={cn('max-w-full truncate rounded-sm px-1.5 py-0 text-[10px] font-medium', chipColorClasses[event.color], className)}>
+      {showTime ? `${event.time} ${event.title}` : event.title}
     </Badge>
   )
 }

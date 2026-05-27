@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { createEvent } from '@/modules/calendar/server/api'
+import { useCreateEventMutation } from '@/modules/calendar/queries/use-create-event-mutation'
 
 type PriorityValue = '1' | '2' | '3'
 
@@ -51,6 +51,7 @@ export function CreateEventDrawer({ open, onOpenChange, initialStart, showTrigge
   const [internalOpen, setInternalOpen] = useState(false)
   const isOpen = isControlled ? (open as boolean) : internalOpen
   const [error, setError] = useState<string | null>(null)
+  const createEventMutation = useCreateEventMutation()
   const initialRange = useMemo(() => defaultRange(initialStart), [initialStart])
 
   const defaultValues: FormValues = {
@@ -66,7 +67,7 @@ export function CreateEventDrawer({ open, onOpenChange, initialStart, showTrigge
     onSubmit: async ({ value, formApi }) => {
       setError(null)
       try {
-        await createEvent({
+        await createEventMutation.mutateAsync({
           name: value.name,
           description: value.description.trim() ? value.description.trim() : undefined,
           eventDateStart: value.eventDateStart.toISOString(),
@@ -281,13 +282,9 @@ export function CreateEventDrawer({ open, onOpenChange, initialStart, showTrigge
           ) : null}
 
           <DrawerFooter className="px-0 pt-2 pb-0">
-            <form.Subscribe selector={(state) => state.isSubmitting}>
-              {(isSubmitting) => (
-                <Button type="submit" variant="accent" disabled={isSubmitting}>
-                  {isSubmitting ? 'Creando...' : 'Crear evento'}
-                </Button>
-              )}
-            </form.Subscribe>
+            <Button type="submit" variant="accent" disabled={createEventMutation.isPending}>
+              {createEventMutation.isPending ? 'Creando...' : 'Crear evento'}
+            </Button>
             <DrawerClose
               render={
                 <Button type="button" variant="ghost">
