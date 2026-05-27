@@ -20,7 +20,7 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
 
   return (
     <section>
-      <div className="grid grid-cols-7 border-b border-border text-center text-[10px] font-medium text-muted-foreground">
+      <div className="grid grid-cols-7 text-center text-[10px] font-medium text-muted-foreground">
         {weekDays.map((weekDay) => (
           <div className="py-2" key={weekDay}>
             {weekDay}
@@ -28,7 +28,7 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
         ))}
       </div>
 
-      <div className="grid grid-cols-7 min-h-[95dvh]">
+      <div className="grid grid-cols-7 min-h-[95dvh] space-y-1 space-x-1">
         {weeks.flat().map((day) => {
           const dayKey = formatDateKey(day)
           const dayEvents = eventsByDate[dayKey] ?? []
@@ -37,23 +37,23 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
           return (
             <Link
               to="/app/crear-evento"
-              className="block min-h-20 border-b border-r border-border p-1.5"
+              className="block min-h-20 text-center bg-accent/50 p-1 rounded-sm"
               key={dayKey}
               onClick={() => setSelectedDate(new Date(day))}
             >
               <div
                 className={cn(
-                  'mb-1 inline-flex size-6 items-center justify-center rounded-full text-xs font-medium',
-                  isToday(day) && 'bg-foreground text-background',
+                  'mb-1 inline-flex items-center justify-center rounded-full text-xs font-medium',
+                  isToday(day) && 'bg-primary text-background px-2 py-0.5',
                   !isCurrentMonth && 'text-muted-foreground',
                 )}
               >
                 {day.getDate()}
               </div>
 
-              <div className="space-y-1">
-                {dayEvents.slice(0, 2).map((event) => (
-                  <EventChip key={event.id} event={event} />
+              <div className="flex flex-col gap-0.5">
+                {dayEvents.map((event) => (
+                  <EventChip key={event.id} event={event} showTime={false} className="w-full justify-start" />
                 ))}
               </div>
             </Link>

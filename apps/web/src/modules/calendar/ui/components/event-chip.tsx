@@ -16,7 +16,13 @@ type EventChipProps = {
 
 export function EventChip({ event, showTime = true, className }: EventChipProps) {
   return (
-    <Badge className={cn('max-w-full truncate rounded-sm px-1.5 py-0 text-[10px] font-medium', chipColorClasses[event.color], className)}>
+    <Badge
+      className={cn(
+        'flex max-w-full truncate rounded-xs border-0 px-0.5 py-0.5 text-[9px]  leading-none',
+        chipColorClasses[event.color],
+        className,
+      )}
+    >
       {showTime ? `${event.time} ${event.title}` : event.title}
     </Badge>
   )
