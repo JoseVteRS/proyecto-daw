@@ -60,6 +60,20 @@ export class PostgresEventsRepository implements EventsRepository {
       throw error
     }
   }
+
+  async list(data: { userId: string; from: Date | null; to: Date | null }): Promise<EventRecord[]> {
+    const result = await this.database.query<EventRow>(
+      `SELECT id, user_id, category_id, priority_id, name, description, event_date_start, event_date_end, created_at, updated_at
+       FROM events
+       WHERE user_id = $1
+         AND ($2::timestamptz IS NULL OR event_date_end >= $2)
+         AND ($3::timestamptz IS NULL OR event_date_start <= $3)
+       ORDER BY event_date_start ASC`,
+      [data.userId, data.from, data.to],
+    )
+
+    return result.rows.map(toEventRecord)
+  }
 }
 
 function toEventRecord(row: EventRow): EventRecord {

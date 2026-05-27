@@ -1,6 +1,6 @@
-import { type EventResponse } from "@proyecto-daw/shared"
+import { type EventListResponse, type ListEventsQuery, type EventResponse } from "@proyecto-daw/shared"
 
-import { toEventResponse, type EventRecord } from "./events.mapper.js"
+import { toEventListResponse, toEventResponse, type EventRecord } from "./events.mapper.js"
 
 export type CreateEventData = {
   userId: string
@@ -14,6 +14,11 @@ export type CreateEventData = {
 
 export type EventsRepository = {
   create(data: CreateEventData): Promise<EventRecord>
+  list(data: {
+    userId: string
+    from: Date | null
+    to: Date | null
+  }): Promise<EventRecord[]>
 }
 
 export class EventsService {
@@ -39,5 +44,19 @@ export class EventsService {
     })
 
     return toEventResponse(event)
+  }
+
+  async list(input: {
+    userId: string
+    from?: ListEventsQuery["from"]
+    to?: ListEventsQuery["to"]
+  }): Promise<EventListResponse> {
+    const events = await this.eventsRepository.list({
+      userId: input.userId,
+      from: input.from ? new Date(input.from) : null,
+      to: input.to ? new Date(input.to) : null,
+    })
+
+    return toEventListResponse(events)
   }
 }
