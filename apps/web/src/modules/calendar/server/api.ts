@@ -4,6 +4,7 @@ import {
   type CreateEventInput,
   type EventListResponse,
   type EventResponse,
+  type UpdateEventInput,
 } from '@proyecto-daw/shared'
 
 const apiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:4000'
@@ -50,6 +51,36 @@ export async function listEvents(query?: { from?: string; to?: string }): Promis
   return eventListResponseSchema.parse(body)
 }
 
+export async function updateEvent(id: string, input: UpdateEventInput): Promise<EventResponse> {
+  const response = await fetch(`${apiBaseUrl}/events/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(input),
+  })
+
+  const body = await parseJson(response)
+
+  if (!response.ok) {
+    throw new ApiError(getErrorMessage(body, 'No se ha podido actualizar el evento.'), response.status)
+  }
+
+  return eventResponseSchema.parse(body)
+}
+
+export async function deleteEvent(id: string): Promise<void> {
+  const response = await fetch(`${apiBaseUrl}/events/${id}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  const body = await parseJson(response)
+
+  if (!response.ok) {
+    throw new ApiError(getErrorMessage(body, 'No se ha podido eliminar el evento.'), response.status)
+  }
+}
+
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -79,6 +110,8 @@ function getErrorMessage(body: unknown, fallback: string): string {
       return 'La categoría seleccionada no es válida.'
     case 'VALIDATION_ERROR':
       return 'Revisa los datos del evento.'
+    case 'EVENT_NOT_FOUND':
+      return 'El evento no existe o no tienes permisos.'
     default:
       return fallback
   }
