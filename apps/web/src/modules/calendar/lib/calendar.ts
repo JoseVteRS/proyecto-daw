@@ -48,3 +48,11 @@ export function isSameDay(firstDate: Date, secondDate: Date) {
 export function isToday(date: Date) {
   return isSameDay(date, new Date())
 }
+
+export function addMonths(date: Date, months: number) {
+  return new Date(date.getFullYear(), date.getMonth() + months, 1)
+}
+
+export function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1)
+}
