@@ -121,7 +121,7 @@ export function CreateEventDrawer({ open, onOpenChange, initialStart, showTrigge
           render={
             <Button
               aria-label="Crear evento"
-              className="fixed right-5 bottom-20 z-30 size-14 rounded-full shadow-lg"
+              className="fixed right-5 bottom-20 z-30 size-12 rounded-mc shadow-lg"
               size="icon"
               variant="default"
             >

@@ -19,8 +19,8 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
   const eventsByDate = groupEventsByDate(events)
 
   return (
-    <section>
-      <div className="grid grid-cols-7 text-center text-[10px] font-medium text-muted-foreground">
+    <section className="flex min-h-0 flex-1 flex-col">
+      <div className="grid shrink-0 grid-cols-7 text-center text-[10px] font-medium text-muted-foreground">
         {weekDays.map((weekDay) => (
           <div className="py-2" key={weekDay}>
             {weekDay}
@@ -28,7 +28,7 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
         ))}
       </div>
 
-      <div className="grid grid-cols-7 min-h-[95dvh] space-y-1 space-x-1">
+      <div className="grid min-h-0 flex-1 grid-cols-7 grid-rows-6 gap-1">
         {weeks.flat().map((day) => {
           const dayKey = formatDateKey(day)
           const dayEvents = eventsByDate[dayKey] ?? []
@@ -37,21 +37,21 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
           return (
             <Link
               to="/app/crear-evento"
-              className="block min-h-20 text-center bg-accent/50 p-1 rounded-sm"
+              className="flex min-h-0 flex-col rounded-sm bg-accent/50 p-1 text-center"
               key={dayKey}
               onClick={() => setSelectedDate(new Date(day))}
             >
               <div
                 className={cn(
-                  'mb-1 inline-flex items-center justify-center rounded-full text-xs font-medium',
-                  isToday(day) && 'bg-primary text-background px-2 py-0.5',
+                  'mb-1 inline-flex shrink-0 items-center justify-center self-center rounded-full text-xs font-medium',
+                  isToday(day) && 'bg-primary px-2 py-0.5 text-background',
                   !isCurrentMonth && 'text-muted-foreground',
                 )}
               >
                 {day.getDate()}
               </div>
 
-              <div className="flex flex-col gap-0.5">
+              <div className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
                 {dayEvents.map((event) => (
                   <EventChip key={event.id} event={event} showTime={false} className="w-full justify-start" />
                 ))}

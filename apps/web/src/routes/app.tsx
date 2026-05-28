@@ -23,9 +23,9 @@ export const Route = createFileRoute('/app')({
 function AppRoute() {
   return (
     <CalendarSelectedDateProvider>
-      <main>
+      <main className="flex min-h-dvh flex-col bg-background">
         <AppHeader />
-        <div>
+        <div className="mx-auto flex min-h-0 w-full max-w-md flex-1 flex-col pb-[calc(3.5rem+max(env(safe-area-inset-bottom,0px),0.25rem))]">
           <Outlet />
         </div>
         <BottomNav />
