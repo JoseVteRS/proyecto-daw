@@ -84,6 +84,10 @@ body,
   min-height: 100%;
 }
 
+.font-display {
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+}
+
 body {
   margin: 0;
   background: var(--color-background);
