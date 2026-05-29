@@ -11,6 +11,18 @@ export function createCategoriesRouter(
 ) {
   const router = Router()
 
+  router.get("/", requireSession, async (request, response, next) => {
+    try {
+      const body = await categoriesService.list({
+        userId: request.session!.userId,
+      })
+
+      response.status(200).json(body)
+    } catch (error) {
+      next(error)
+    }
+  })
+
   router.post("/", requireSession, async (request, response, next) => {
     const parsedInput = createCategoryInputSchema.safeParse(request.body)
 
