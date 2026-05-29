@@ -27,6 +27,7 @@ function createRepository(overrides: Partial<CategoriesRepository> = {}): Catego
       updatedAt,
     }),
     delete: vi.fn().mockResolvedValue(true),
+    list: vi.fn().mockResolvedValue([]),
     ...overrides,
   }
 }

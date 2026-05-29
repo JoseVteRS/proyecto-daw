@@ -26,6 +26,18 @@ type CategoryRow = {
 export class PostgresCategoriesRepository implements CategoriesRepository {
   constructor(private readonly database: Pick<Pool, "query"> = pool) {}
 
+  async list(data: { userId: string }): Promise<CategoryRecord[]> {
+    const result = await this.database.query<CategoryRow>(
+      `SELECT id, user_id, name, description, color, created_at, updated_at
+       FROM categories
+       WHERE user_id = $1
+       ORDER BY name ASC`,
+      [data.userId],
+    )
+
+    return result.rows.map(toCategoryRecord)
+  }
+
   async create(data: CreateCategoryData): Promise<CategoryRecord> {
     try {
       const result = await this.database.query<CategoryRow>(
