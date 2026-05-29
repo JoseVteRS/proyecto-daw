@@ -12,6 +12,8 @@ export function toCalendarEvent(event: EventResponse['event']): CalendarEvent {
   return {
     id: event.id,
     date: formatDate(start),
+    startDate: formatDate(start),
+    endDate: formatDate(end),
     time: formatTime(start),
     title: event.name,
     color: priorityToColor(event.priorityId),

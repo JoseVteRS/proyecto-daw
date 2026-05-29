@@ -71,13 +71,34 @@ function formatDateKey(date: Date) {
   return `${year}-${month}-${day}`
 }
 
+function parseDateKey(dateKey: string) {
+  const [year, month, day] = dateKey.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
+function addDays(date: Date, days: number) {
+  const nextDate = new Date(date)
+  nextDate.setDate(nextDate.getDate() + days)
+  return nextDate
+}
+
 function groupEventsByDate(events: Array<CalendarEvent>) {
   return events.reduce<Record<string, Array<CalendarEvent>>>((groupedEvents, event) => {
-    if (!groupedEvents[event.date]) {
-      groupedEvents[event.date] = []
+    const eventStart = parseDateKey(event.startDate)
+    const eventEnd = parseDateKey(event.endDate)
+    const firstDay = eventStart.getTime() <= eventEnd.getTime() ? eventStart : eventEnd
+    const lastDay = eventStart.getTime() <= eventEnd.getTime() ? eventEnd : eventStart
+
+    for (let day = new Date(firstDay); day.getTime() <= lastDay.getTime(); day = addDays(day, 1)) {
+      const dayKey = formatDateKey(day)
+
+      if (!groupedEvents[dayKey]) {
+        groupedEvents[dayKey] = []
+      }
+
+      groupedEvents[dayKey].push(event)
     }
 
-    groupedEvents[event.date].push(event)
     return groupedEvents
   }, {})
 }
