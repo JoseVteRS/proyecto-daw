@@ -1,21 +1,24 @@
 import type { EventResponse } from '@proyecto-daw/shared'
 import { useForm } from '@tanstack/react-form'
-import { Trash2 } from 'lucide-react'
+import { Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 
-import { DateTimePicker } from '@/components/date-time-picker'
+import { DatePicker } from '@/components/date-picker'
+import { TimePicker } from '@/components/time-picker'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { addDays, formatWeekdayDateEs, setTime } from '@/lib/date'
+import { cn } from '@/lib/utils'
 import { useDeleteEventMutation } from '@/modules/calendar/queries/use-delete-event-mutation'
 import { useUpdateEventMutation } from '@/modules/calendar/queries/use-update-event-mutation'
 
@@ -35,7 +38,57 @@ type EventDetailsDrawerProps = {
   event: EventResponse['event'] | null
 }
 
+const priorityOptions: Array<{ value: PriorityValue; label: string }> = [
+  { value: '1', label: 'Baja' },
+  { value: '2', label: 'Media' },
+  { value: '3', label: 'Alta' },
+]
+
+function toAllDayRange(startDate: Date, endDate?: Date): { start: Date; end: Date } {
+  const start = new Date(startDate)
+  start.setHours(0, 0, 0, 0)
+
+  const end = new Date(endDate ?? startDate)
+  end.setHours(23, 59, 0, 0)
+
+  if (end.getTime() < start.getTime()) {
+    return { start, end: new Date(start.getFullYear(), start.getMonth(), start.getDate(), 23, 59, 0, 0) }
+  }
+
+  return { start, end }
+}
+
+function clampEndSameDay(start: Date): Date {
+  const end = new Date(start)
+  end.setHours(start.getHours() + 1, start.getMinutes(), 0, 0)
+
+  if (
+    end.getFullYear() !== start.getFullYear() ||
+    end.getMonth() !== start.getMonth() ||
+    end.getDate() !== start.getDate()
+  ) {
+    return new Date(start.getFullYear(), start.getMonth(), start.getDate(), 23, 59, 0, 0)
+  }
+
+  return end
+}
+
+function startOfDayTimestamp(date: Date): number {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+}
+
+function getDayDelta(start: Date, end: Date): number {
+  const diff = startOfDayTimestamp(end) - startOfDayTimestamp(start)
+  return Math.max(0, Math.round(diff / (24 * 60 * 60 * 1000)))
+}
+
+function isAllDayEvent(start: Date, end: Date): boolean {
+  return start.getHours() === 0 && start.getMinutes() === 0 && end.getHours() === 23 && end.getMinutes() === 59
+}
+
 export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDrawerProps) {
+  const [allDay, setAllDay] = useState(false)
+  const [isMultiDay, setIsMultiDay] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const updateEventMutation = useUpdateEventMutation()
@@ -73,7 +126,10 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
       return
     }
 
-    form.reset(toDefaultValues(event))
+    const values = toDefaultValues(event)
+    form.reset(values)
+    setAllDay(isAllDayEvent(values.eventDateStart, values.eventDateEnd))
+    setIsMultiDay(startOfDayTimestamp(values.eventDateEnd) > startOfDayTimestamp(values.eventDateStart))
     setError(null)
     setConfirmDelete(false)
   }, [event, form, open])
@@ -83,6 +139,8 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
     if (!nextOpen) {
       setError(null)
       setConfirmDelete(false)
+      setAllDay(false)
+      setIsMultiDay(false)
     }
   }
 
@@ -103,17 +161,21 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
-        <DrawerHeader>
-          <div className="flex items-start justify-between gap-3">
-            <div className="space-y-1">
-              <DrawerTitle>{event?.name ?? 'Editar evento'}</DrawerTitle>
-              <DrawerDescription>Actualiza o elimina este evento.</DrawerDescription>
-            </div>
+        <DrawerHeader className="flex-row items-center justify-between gap-2 pb-3">
+          <DrawerTitle>Editar evento</DrawerTitle>
+          <div className="flex items-center gap-1">
+            <DrawerClose
+              render={
+                <Button type="button" variant="ghost" size="icon" aria-label="Cerrar formulario">
+                  <X className="size-4" />
+                </Button>
+              }
+            />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="text-red-600 hover:bg-red-100 hover:text-red-700"
               onClick={() => setConfirmDelete(true)}
               aria-label="Eliminar evento"
               disabled={!event || updateEventMutation.isPending || deleteEventMutation.isPending}
@@ -128,7 +190,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             submitEvent.stopPropagation()
             void form.handleSubmit()
           }}
-          className="flex flex-col gap-4 overflow-y-auto px-5 pt-2 pb-4"
+          className="flex flex-col gap-5 overflow-y-auto px-5 pt-2 pb-4"
         >
           <form.Field
             name="name"
@@ -143,7 +205,6 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
           >
             {(field) => (
               <FormRow>
-                <Label htmlFor={field.name}>Nombre</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -151,6 +212,8 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(changeEvent) => field.handleChange(changeEvent.target.value)}
+                  className="h-auto border-0 px-0 text-4xl font-semibold text-foreground shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0"
+                  placeholder="Añadir título"
                   required
                   disabled={!event}
                 />
@@ -168,7 +231,6 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
           >
             {(field) => (
               <FormRow>
-                <Label htmlFor={field.name}>Descripción</Label>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -176,7 +238,8 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                   value={field.state.value}
                   onBlur={field.handleBlur}
                   onChange={(changeEvent) => field.handleChange(changeEvent.target.value)}
-                  placeholder="Opcional"
+                  placeholder="Añadir descripción"
+                  className="h-auto border-0 px-0 text-sm text-muted-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
                   disabled={!event}
                 />
                 <FieldError errors={field.state.meta.errors} />
@@ -184,81 +247,236 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             )}
           </form.Field>
 
-          <div className="grid grid-cols-1 gap-3">
-            <form.Field
-              name="eventDateStart"
-              validators={{
-                onChange: ({ value }) => (!value ? 'Fecha de inicio obligatoria.' : undefined),
-              }}
-            >
-              {(field) => (
-                <FormRow>
-                  <Label htmlFor={field.name}>Inicio</Label>
-                  <DateTimePicker
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(next) => {
-                      const nextStart = next ?? new Date()
-                      field.handleChange(nextStart)
+          <Card className="rounded-2xl border-0 bg-muted/40 px-4 py-3 shadow-none">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-base font-semibold text-foreground">Todo el día</p>
+                <p className="text-sm text-muted-foreground">Sin horario específico</p>
+              </div>
+              <Switch
+                checked={allDay}
+                className="h-6 w-10 [&_span]:size-5 [&_span]:data-checked:translate-x-4"
+                onCheckedChange={(checked) => {
+                  const nextAllDay = Boolean(checked)
+                  setAllDay(nextAllDay)
+                  const currentStart = form.state.values.eventDateStart
+                  const currentEnd = form.state.values.eventDateEnd
 
-                      const nextEnd = new Date(nextStart)
-                      nextEnd.setHours(nextEnd.getHours() + 1)
-                      form.setFieldValue('eventDateEnd', nextEnd)
-                    }}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </FormRow>
-              )}
-            </form.Field>
-
-            <form.Field
-              name="eventDateEnd"
-              validators={{
-                onChangeListenTo: ['eventDateStart'],
-                onChange: ({ value, fieldApi }) => {
-                  if (!value) return 'Fecha de fin obligatoria.'
-                  const start = fieldApi.form.getFieldValue('eventDateStart')
-                  if (start && value.getTime() <= start.getTime()) {
-                    return 'Debe ser posterior al inicio.'
+                  if (nextAllDay) {
+                    const range = toAllDayRange(currentStart, currentEnd)
+                    form.setFieldValue('eventDateStart', range.start)
+                    form.setFieldValue('eventDateEnd', range.end)
+                    return
                   }
-                  return undefined
-                },
-              }}
-            >
-              {(field) => (
-                <FormRow>
-                  <Label htmlFor={field.name}>Fin</Label>
-                  <DateTimePicker
-                    id={field.name}
-                    value={field.state.value}
-                    onChange={(next) => {
-                      field.handleChange(next ?? new Date())
-                    }}
-                  />
-                  <FieldError errors={field.state.meta.errors} />
-                </FormRow>
-              )}
-            </form.Field>
-          </div>
+
+                  const nextStart = setTime(currentStart, 9, 0)
+                  form.setFieldValue('eventDateStart', nextStart)
+                  form.setFieldValue(
+                    'eventDateEnd',
+                    isMultiDay
+                      ? setTime(addDays(nextStart, getDayDelta(currentStart, currentEnd)), 10, 0)
+                      : clampEndSameDay(nextStart),
+                  )
+                }}
+                aria-label="Todo el día"
+              />
+            </div>
+          </Card>
+
+          <form.Field
+            name="eventDateStart"
+            validators={{
+              onChange: ({ value }) => (!value ? 'Fecha de inicio obligatoria.' : undefined),
+            }}
+          >
+            {(field) => (
+              <FormRow>
+                <Card className="rounded-2xl border-0 bg-muted/40 px-4 py-3 shadow-none">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-base font-semibold text-foreground">Fecha</p>
+                    <DatePicker
+                      id={`${field.name}-date-start`}
+                      value={field.state.value}
+                      onChange={(next) => {
+                        const selectedDate = next ?? new Date()
+                        const currentStart = form.state.values.eventDateStart
+                        const currentEnd = form.state.values.eventDateEnd
+                        const dayDelta = getDayDelta(currentStart, currentEnd)
+
+                        if (allDay) {
+                          const nextStart = new Date(selectedDate)
+                          nextStart.setHours(0, 0, 0, 0)
+                          const nextEnd = isMultiDay ? addDays(nextStart, dayDelta) : new Date(nextStart)
+                          nextEnd.setHours(23, 59, 0, 0)
+                          form.setFieldValue('eventDateStart', nextStart)
+                          form.setFieldValue('eventDateEnd', nextEnd)
+                          return
+                        }
+
+                        const nextStart = setTime(selectedDate, currentStart.getHours(), currentStart.getMinutes())
+                        if (!isMultiDay) {
+                          form.setFieldValue('eventDateStart', nextStart)
+                          form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
+                          return
+                        }
+
+                        const nextEndDate = addDays(selectedDate, dayDelta)
+                        const nextEnd = setTime(nextEndDate, currentEnd.getHours(), currentEnd.getMinutes())
+
+                        form.setFieldValue('eventDateStart', nextStart)
+                        form.setFieldValue('eventDateEnd', nextEnd.getTime() > nextStart.getTime() ? nextEnd : clampEndSameDay(nextStart))
+                      }}
+                      className="h-auto border-0 bg-transparent p-0 text-sm font-semibold text-muted-foreground shadow-none hover:bg-transparent focus-visible:ring-0 [&>svg]:hidden"
+                      placeholder={formatWeekdayDateEs(field.state.value)}
+                      disabled={!event}
+                    />
+                  </div>
+                  <div className="mt-2 border-t border-border/50 pt-2">
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-muted-foreground disabled:opacity-50"
+                      disabled={!event}
+                      onClick={() => {
+                        const nextMultiDay = !isMultiDay
+                        setIsMultiDay(nextMultiDay)
+                        if (!nextMultiDay) {
+                          const nextStart = form.state.values.eventDateStart
+                          form.setFieldValue(
+                            'eventDateEnd',
+                            allDay ? toAllDayRange(nextStart).end : clampEndSameDay(nextStart),
+                          )
+                        }
+                      }}
+                    >
+                      {isMultiDay ? '- Quitar multi-día' : '+ Hacer multi-día'}
+                    </button>
+                  </div>
+                  {isMultiDay ? (
+                    <div className="mt-3">
+                      <DatePicker
+                        id={`${field.name}-date-end`}
+                        value={form.state.values.eventDateEnd}
+                        min={field.state.value}
+                        onChange={(next) => {
+                          const selectedDate = next ?? new Date()
+                          const currentStart = form.state.values.eventDateStart
+                          const currentEnd = form.state.values.eventDateEnd
+
+                          if (allDay) {
+                            const nextEnd = new Date(selectedDate)
+                            nextEnd.setHours(23, 59, 0, 0)
+                            if (nextEnd.getTime() < currentStart.getTime()) return
+                            form.setFieldValue('eventDateEnd', nextEnd)
+                            return
+                          }
+
+                          const nextEnd = setTime(selectedDate, currentEnd.getHours(), currentEnd.getMinutes())
+                          form.setFieldValue('eventDateEnd', nextEnd.getTime() > currentStart.getTime() ? nextEnd : clampEndSameDay(currentStart))
+                        }}
+                        className="h-10 justify-start text-sm font-medium shadow-none"
+                        placeholder="Fecha fin"
+                        disabled={!event}
+                      />
+                    </div>
+                  ) : null}
+                </Card>
+                <FieldError errors={field.state.meta.errors} />
+              </FormRow>
+            )}
+          </form.Field>
+
+          {!allDay ? (
+            <div className="grid grid-cols-2 gap-3">
+              <form.Field
+                name="eventDateStart"
+                validators={{
+                  onChange: ({ value }) => (!value ? 'Fecha de inicio obligatoria.' : undefined),
+                }}
+              >
+                {(field) => (
+                  <FormRow>
+                    <p className="text-xs font-semibold tracking-wide text-muted-foreground">INICIO</p>
+                    <TimePicker
+                      id={`${field.name}-time-start`}
+                      value={field.state.value}
+                      onChange={(next) => {
+                        const pickedTime = next ?? new Date()
+                        const nextStart = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
+                        field.handleChange(nextStart)
+                        if (!isMultiDay) {
+                          form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
+                          return
+                        }
+                        if (form.state.values.eventDateEnd.getTime() <= nextStart.getTime()) {
+                          form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
+                        }
+                      }}
+                      disabled={!event}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </FormRow>
+                )}
+              </form.Field>
+
+              <form.Field
+                name="eventDateEnd"
+                validators={{
+                  onChangeListenTo: ['eventDateStart'],
+                  onChange: ({ value, fieldApi }) => {
+                    if (!value) return 'Fecha de fin obligatoria.'
+                    const start = fieldApi.form.getFieldValue('eventDateStart')
+                    if (start && value.getTime() <= start.getTime()) {
+                      return 'Debe ser posterior al inicio.'
+                    }
+                    return undefined
+                  },
+                }}
+              >
+                {(field) => (
+                  <FormRow>
+                    <p className="text-xs font-semibold tracking-wide text-muted-foreground">FIN</p>
+                    <TimePicker
+                      id={`${field.name}-time-end`}
+                      value={field.state.value}
+                      onChange={(next) => {
+                        const pickedTime = next ?? new Date()
+                        const nextEnd = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
+                        field.handleChange(nextEnd)
+                      }}
+                      disabled={!event}
+                    />
+                    <FieldError errors={field.state.meta.errors} />
+                  </FormRow>
+                )}
+              </form.Field>
+            </div>
+          ) : null}
 
           <form.Field name="priorityId">
             {(field) => (
-              <FormRow>
-                <Label htmlFor={field.name}>Prioridad</Label>
-                <select
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(changeEvent) => field.handleChange(changeEvent.target.value as PriorityValue)}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-                  disabled={!event}
-                >
-                  <option value="1">Baja</option>
-                  <option value="2">Media</option>
-                  <option value="3">Alta</option>
-                </select>
-              </FormRow>
+              <div className="space-y-2">
+                <p className="text-xs font-semibold tracking-wide text-muted-foreground">IMPORTANCIA</p>
+                <div className="inline-flex rounded-full bg-muted/70 p-1 shadow-none">
+                  {priorityOptions.map((option) => {
+                    const isSelected = field.state.value === option.value
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        onBlur={field.handleBlur}
+                        onClick={() => field.handleChange(option.value)}
+                        disabled={!event}
+                        className={cn(
+                          'rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50',
+                          isSelected ? 'bg-foreground text-background shadow-none' : 'text-foreground hover:bg-background/70',
+                        )}
+                      >
+                        {option.label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
             )}
           </form.Field>
 
@@ -271,28 +489,22 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             </div>
           ) : null}
 
-          <DrawerFooter className="px-0 pt-2 pb-0">
+          <DrawerFooter className="px-0 pt-1 pb-0">
             <Button
               type="submit"
               variant="accent"
+              className="h-12 rounded-md text-base font-semibold"
               disabled={!event || updateEventMutation.isPending || deleteEventMutation.isPending}
             >
               {updateEventMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
             </Button>
-            <DrawerClose
-              render={
-                <Button type="button" variant="ghost">
-                  Cancelar
-                </Button>
-              }
-            />
           </DrawerFooter>
         </form>
         <Drawer open={confirmDelete} onOpenChange={setConfirmDelete}>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>¿Eliminar evento?</DrawerTitle>
-              <DrawerDescription>Esta acción no se puede deshacer.</DrawerDescription>
+              <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer.</p>
             </DrawerHeader>
             <DrawerFooter>
               <Button
