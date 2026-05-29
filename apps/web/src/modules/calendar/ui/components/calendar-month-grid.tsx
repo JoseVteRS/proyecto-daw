@@ -19,7 +19,7 @@ export function CalendarMonthGrid({ monthDate, events }: CalendarMonthGridProps)
   const eventsByDate = groupEventsByDate(events)
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col">
+    <section className="flex min-h-0 flex-1 flex-col py-1.5">
       <div className="grid shrink-0 grid-cols-7 text-center text-[10px] font-medium text-muted-foreground">
         {weekDays.map((weekDay) => (
           <div className="py-2" key={weekDay}>
