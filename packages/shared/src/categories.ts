@@ -27,6 +27,11 @@ export const categoryResponseSchema = z.object({
   }),
 })
 
+export const categoryListResponseSchema = z.object({
+  categories: z.array(categoryResponseSchema.shape.category),
+})
+
 export type CreateCategoryInput = z.infer<typeof createCategoryInputSchema>
 export type UpdateCategoryInput = z.infer<typeof updateCategoryInputSchema>
 export type CategoryResponse = z.infer<typeof categoryResponseSchema>
+export type CategoryListResponse = z.infer<typeof categoryListResponseSchema>
