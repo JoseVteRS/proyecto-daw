@@ -20,6 +20,12 @@ const timeFormatter = new Intl.DateTimeFormat('es-ES', {
   hour12: false,
 })
 
+const weekdayDateFormatter = new Intl.DateTimeFormat('es-ES', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+})
+
 export function startOfMonth(date: Date): Date {
   return new Date(date.getFullYear(), date.getMonth(), 1)
 }
@@ -68,6 +74,11 @@ export function formatMonthYearEs(date: Date): string {
 
 export function formatTime(date: Date): string {
   return timeFormatter.format(date)
+}
+
+export function formatWeekdayDateEs(date: Date): string {
+  const value = weekdayDateFormatter.format(date)
+  return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
 export function setTime(date: Date, hours: number, minutes: number): Date {
