@@ -1,7 +1,8 @@
 import { useForm } from '@tanstack/react-form'
 import { Plus } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 
+import { FormAlert, FormField } from '@/components/form-field'
 import { Button } from '@/components/ui/button'
 import {
   Drawer,
@@ -13,8 +14,9 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
+import { FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { useCreateCategoryMutation } from '@/modules/categories/queries/use-create-category-mutation'
 
 type FormValues = {
@@ -61,18 +63,16 @@ export function CreateCategoryDrawer() {
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
-      <DrawerTrigger
-        render={
-          <Button
-            aria-label="Crear categoría"
-            className="fixed right-5 bottom-20 z-30 size-12 rounded-mc shadow-lg"
-            size="icon"
-            variant="default"
-          >
-            <Plus className="size-5" />
-          </Button>
-        }
-      />
+      <DrawerTrigger asChild>
+        <Button
+          aria-label="Crear categoría"
+          className="fixed right-5 bottom-20 z-30 size-12 rounded-mc shadow-lg"
+          size="icon"
+          variant="default"
+        >
+          <Plus className="size-5" />
+        </Button>
+      </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Nueva categoría</DrawerTitle>
@@ -86,121 +86,94 @@ export function CreateCategoryDrawer() {
           }}
           className="flex flex-col gap-4 overflow-y-auto px-5 pt-2 pb-4"
         >
-          <form.Field
-            name="name"
-            validators={{
-              onChange: ({ value }) => {
-                const trimmed = value.trim()
-                if (trimmed.length < 2) return 'El nombre debe tener al menos 2 caracteres.'
-                if (trimmed.length > 100) return 'El nombre no puede superar 100 caracteres.'
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <FormRow>
-                <Label htmlFor={field.name}>Nombre</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  maxLength={100}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  required
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
-            )}
-          </form.Field>
-
-          <form.Field
-            name="description"
-            validators={{
-              onChange: ({ value }) =>
-                value.length > 1000 ? 'La descripción no puede superar 1000 caracteres.' : undefined,
-            }}
-          >
-            {(field) => (
-              <FormRow>
-                <Label htmlFor={field.name}>Descripción</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  maxLength={1000}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  placeholder="Opcional"
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
-            )}
-          </form.Field>
-
-          <form.Field
-            name="color"
-            validators={{
-              onChange: ({ value }) => {
-                const trimmed = value.trim()
-                if (!trimmed) return undefined
-                return hexColorRegex.test(trimmed) ? undefined : 'Usa formato hexadecimal: #RRGGBB.'
-              },
-            }}
-          >
-            {(field) => (
-              <FormRow>
-                <Label htmlFor={field.name}>Color</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  placeholder="#3B82F6"
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
-            )}
-          </form.Field>
-
-          {error ? (
-            <div
-              role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+          <FieldGroup>
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => {
+                  const trimmed = value.trim()
+                  if (trimmed.length < 2) return 'El nombre debe tener al menos 2 caracteres.'
+                  if (trimmed.length > 100) return 'El nombre no puede superar 100 caracteres.'
+                  return undefined
+                },
+              }}
             >
-              {error}
-            </div>
-          ) : null}
+              {(field) => (
+                <FormField label="Nombre" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    maxLength={100}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    required
+                  />
+                </FormField>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="description"
+              validators={{
+                onChange: ({ value }) =>
+                  value.length > 1000 ? 'La descripción no puede superar 1000 caracteres.' : undefined,
+              }}
+            >
+              {(field) => (
+                <FormField label="Descripción" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Textarea
+                    id={field.name}
+                    name={field.name}
+                    maxLength={1000}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    placeholder="Opcional"
+                  />
+                </FormField>
+              )}
+            </form.Field>
+
+            <form.Field
+              name="color"
+              validators={{
+                onChange: ({ value }) => {
+                  const trimmed = value.trim()
+                  if (!trimmed) return undefined
+                  return hexColorRegex.test(trimmed) ? undefined : 'Usa formato hexadecimal: #RRGGBB.'
+                },
+              }}
+            >
+              {(field) => (
+                <FormField label="Color" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    placeholder="#3B82F6"
+                  />
+                </FormField>
+              )}
+            </form.Field>
+
+            {error ? <FormAlert message={error} /> : null}
+          </FieldGroup>
 
           <DrawerFooter className="px-0 pt-2 pb-0">
-            <Button type="submit" variant="accent" disabled={createCategoryMutation.isPending}>
+            <Button type="submit" variant="default" disabled={createCategoryMutation.isPending}>
               {createCategoryMutation.isPending ? 'Creando...' : 'Crear categoría'}
             </Button>
-            <DrawerClose
-              render={
-                <Button type="button" variant="ghost">
-                  Cancelar
-                </Button>
-              }
-            />
+            <DrawerClose asChild>
+              <Button type="button" variant="ghost">
+                Cancelar
+              </Button>
+            </DrawerClose>
           </DrawerFooter>
         </form>
       </DrawerContent>
     </Drawer>
   )
-}
-
-function FormRow({ children }: { children: ReactNode }) {
-  return <div className="space-y-2">{children}</div>
-}
-
-function FieldError({ errors }: { errors: Array<unknown> }) {
-  const message = errors.find((fieldError) => typeof fieldError === 'string')
-
-  if (!message) {
-    return null
-  }
-
-  return <p className="text-sm text-red-600">{message}</p>
 }
