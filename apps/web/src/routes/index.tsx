@@ -13,7 +13,7 @@ function Home() {
           <Button render={<Link to="/auth/login" />} variant="ghost">
             Iniciar sesión
           </Button>
-          <Button render={<Link to="/auth/register" />} variant="accent">
+          <Button render={<Link to="/auth/register" />} variant="default">
             Crear cuenta
           </Button>
         </div>
@@ -30,7 +30,7 @@ function Home() {
           Zengenda te ayuda a gestionar eventos, categorías y prioridades con una interfaz sencilla y directa.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button render={<Link to="/auth/register" />} size="lg" variant="accent">
+          <Button render={<Link to="/auth/register" />} size="lg" variant="default">
             Empezar ahora
           </Button>
           <Button render={<Link to="/auth/login" />} size="lg" variant="outline">

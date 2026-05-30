@@ -2,10 +2,11 @@ import { useForm } from '@tanstack/react-form'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 
+import { FormAlert, FormField } from '@/components/form-field'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { FieldGroup } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { useAuth } from '@/modules/auth/ui/auth-context'
 import { loginUser, registerUser } from '../../server/api'
 
@@ -33,7 +34,7 @@ export function RegisterForm() {
   })
 
   return (
-    <Card className="mx-auto w-full max-w-md border-black/15">
+    <Card className="mx-auto w-full max-w-md">
       <CardHeader>
         <CardTitle>Crear cuenta</CardTitle>
         <CardDescription>Introduce tus datos para empezar a usar Zengenda.</CardDescription>
@@ -45,112 +46,104 @@ export function RegisterForm() {
           void form.handleSubmit()
         }}
       >
-        <CardContent className="space-y-4">
-          <form.Field
-            name="name"
-            validators={{
-              onChange: ({ value }) => {
-                if (value.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres.'
-                if (value.length > 100) return 'El nombre no puede superar 100 caracteres.'
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Nombre</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  autoComplete="name"
-                  minLength={2}
-                  maxLength={100}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  required
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </div>
-            )}
-          </form.Field>
+        <CardContent>
+          <FieldGroup>
+            <form.Field
+              name="name"
+              validators={{
+                onChange: ({ value }) => {
+                  if (value.trim().length < 2) return 'El nombre debe tener al menos 2 caracteres.'
+                  if (value.length > 100) return 'El nombre no puede superar 100 caracteres.'
+                  return undefined
+                },
+              }}
+            >
+              {(field) => (
+                <FormField label="Nombre" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    autoComplete="name"
+                    minLength={2}
+                    maxLength={100}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    required
+                  />
+                </FormField>
+              )}
+            </form.Field>
 
-          <form.Field
-            name="email"
-            validators={{
-              onChange: ({ value }) => {
-                if (!value) return 'El correo electrónico es obligatorio.'
-                if (!/^\S+@\S+\.\S+$/.test(value)) return 'Introduce un correo electrónico válido.'
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Correo electrónico</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="email"
-                  autoComplete="email"
-                  maxLength={255}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  required
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </div>
-            )}
-          </form.Field>
+            <form.Field
+              name="email"
+              validators={{
+                onChange: ({ value }) => {
+                  if (!value) return 'El correo electrónico es obligatorio.'
+                  if (!/^\S+@\S+\.\S+$/.test(value)) return 'Introduce un correo electrónico válido.'
+                  return undefined
+                },
+              }}
+            >
+              {(field) => (
+                <FormField label="Correo electrónico" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type="email"
+                    autoComplete="email"
+                    maxLength={255}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    required
+                  />
+                </FormField>
+              )}
+            </form.Field>
 
-          <form.Field
-            name="password"
-            validators={{
-              onChange: ({ value }) => {
-                if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres.'
-                if (value.length > 72) return 'La contraseña no puede superar 72 caracteres.'
-                return undefined
-              },
-            }}
-          >
-            {(field) => (
-              <div className="space-y-2">
-                <Label htmlFor={field.name}>Contraseña</Label>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="password"
-                  autoComplete="new-password"
-                  minLength={8}
-                  maxLength={72}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(event) => field.handleChange(event.target.value)}
-                  required
-                />
-                <FieldError errors={field.state.meta.errors} />
-              </div>
-            )}
-          </form.Field>
+            <form.Field
+              name="password"
+              validators={{
+                onChange: ({ value }) => {
+                  if (value.length < 8) return 'La contraseña debe tener al menos 8 caracteres.'
+                  if (value.length > 72) return 'La contraseña no puede superar 72 caracteres.'
+                  return undefined
+                },
+              }}
+            >
+              {(field) => (
+                <FormField label="Contraseña" htmlFor={field.name} errors={field.state.meta.errors}>
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type="password"
+                    autoComplete="new-password"
+                    minLength={8}
+                    maxLength={72}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(event) => field.handleChange(event.target.value)}
+                    required
+                  />
+                </FormField>
+              )}
+            </form.Field>
 
-          {error ? (
-            <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
-              {error}
-            </div>
-          ) : null}
+            {error ? <FormAlert message={error} /> : null}
+          </FieldGroup>
         </CardContent>
         <CardFooter className="flex-col gap-4">
           <form.Subscribe selector={(state) => state.isSubmitting}>
             {(isSubmitting) => (
-              <Button className="w-full" type="submit" variant="accent" disabled={isSubmitting}>
+              <Button className="w-full" type="submit" variant="default" size="lg" disabled={isSubmitting}>
                 {isSubmitting ? 'Enviando...' : 'Crear cuenta'}
               </Button>
             )}
           </form.Subscribe>
-          <p className="text-center text-sm text-black/60">
+          <p className="text-center text-sm text-muted-foreground">
             ¿Ya tienes cuenta?{' '}
-            <Link className="font-medium text-black underline decoration-[#0aca97] underline-offset-4" to="/auth/login">
+            <Link className="font-medium text-primary underline underline-offset-4" to="/auth/login">
               Inicia sesión
             </Link>
           </p>
@@ -158,14 +151,4 @@ export function RegisterForm() {
       </form>
     </Card>
   )
-}
-
-function FieldError({ errors }: { errors: Array<unknown> }) {
-  const message = errors.find((fieldError) => typeof fieldError === 'string')
-
-  if (!message) {
-    return null
-  }
-
-  return <p className="text-sm text-red-600">{message}</p>
 }
