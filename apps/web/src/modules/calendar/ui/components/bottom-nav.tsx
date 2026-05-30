@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 
 const navItems = [
   { icon: CalendarDays, label: 'Calendario', to: '/app', activePaths: ['/app'] },
-  { icon: List, label: 'Eventos' },
+  { icon: List, label: 'Eventos', to: '/app/eventos', activePaths: ['/app/eventos'] },
   { icon: Tag, label: 'Categorías', to: '/app/categorias', activePaths: ['/app/categorias'] },
   { icon: User, label: 'Perfil' },
 ]

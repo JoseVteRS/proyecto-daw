@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppIndexRouteImport } from './routes/app.index'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AppEventosRouteImport } from './routes/app.eventos'
 import { Route as AppCrearEventoRouteImport } from './routes/app.crear-evento'
 import { Route as AppCategoriasRouteImport } from './routes/app.categorias'
 
@@ -42,6 +43,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppEventosRoute = AppEventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppCrearEventoRoute = AppCrearEventoRouteImport.update({
   id: '/crear-evento',
   path: '/crear-evento',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppRouteWithChildren
   '/app/categorias': typeof AppCategoriasRoute
   '/app/crear-evento': typeof AppCrearEventoRoute
+  '/app/eventos': typeof AppEventosRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/app/categorias': typeof AppCategoriasRoute
   '/app/crear-evento': typeof AppCrearEventoRoute
+  '/app/eventos': typeof AppEventosRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app': typeof AppIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/app': typeof AppRouteWithChildren
   '/app/categorias': typeof AppCategoriasRoute
   '/app/crear-evento': typeof AppCrearEventoRoute
+  '/app/eventos': typeof AppEventosRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/app/': typeof AppIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/categorias'
     | '/app/crear-evento'
+    | '/app/eventos'
     | '/auth/login'
     | '/auth/register'
     | '/app/'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/app/categorias'
     | '/app/crear-evento'
+    | '/app/eventos'
     | '/auth/login'
     | '/auth/register'
     | '/app'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/app/categorias'
     | '/app/crear-evento'
+    | '/app/eventos'
     | '/auth/login'
     | '/auth/register'
     | '/app/'
@@ -153,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/eventos': {
+      id: '/app/eventos'
+      path: '/eventos'
+      fullPath: '/app/eventos'
+      preLoaderRoute: typeof AppEventosRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/crear-evento': {
       id: '/app/crear-evento'
       path: '/crear-evento'
@@ -173,12 +192,14 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppCategoriasRoute: typeof AppCategoriasRoute
   AppCrearEventoRoute: typeof AppCrearEventoRoute
+  AppEventosRoute: typeof AppEventosRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
   AppCategoriasRoute: AppCategoriasRoute,
   AppCrearEventoRoute: AppCrearEventoRoute,
+  AppEventosRoute: AppEventosRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
