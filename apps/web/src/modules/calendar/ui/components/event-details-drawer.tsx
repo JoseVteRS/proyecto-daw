@@ -19,8 +19,8 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { addDays, formatWeekdayDateEs, setTime } from '@/lib/date'
 import { cn } from '@/lib/utils'
-import { useDeleteEventMutation } from '@/modules/calendar/queries/use-delete-event-mutation'
 import { useUpdateEventMutation } from '@/modules/calendar/queries/use-update-event-mutation'
+import { DeleteEventDrawer } from '@/modules/calendar/ui/components/delete-event-drawer'
 
 type PriorityValue = '1' | '2' | '3'
 
@@ -92,7 +92,6 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
   const [error, setError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const updateEventMutation = useUpdateEventMutation()
-  const deleteEventMutation = useDeleteEventMutation()
 
   const defaultValues = useMemo(() => toDefaultValues(event), [event])
   const form = useForm({
@@ -144,20 +143,6 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
     }
   }
 
-  async function handleDelete() {
-    if (!event) {
-      return
-    }
-
-    setError(null)
-    try {
-      await deleteEventMutation.mutateAsync(event.id)
-      handleOpenChange(false)
-    } catch (caughtError) {
-      setError(caughtError instanceof Error ? caughtError.message : 'Ha ocurrido un error inesperado.')
-    }
-  }
-
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
       <DrawerContent>
@@ -178,7 +163,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
               className="text-red-600 hover:bg-red-100 hover:text-red-700"
               onClick={() => setConfirmDelete(true)}
               aria-label="Eliminar evento"
-              disabled={!event || updateEventMutation.isPending || deleteEventMutation.isPending}
+              disabled={!event || updateEventMutation.isPending}
             >
               <Trash2 className="size-4" />
             </Button>
@@ -494,37 +479,18 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
               type="submit"
               variant="accent"
               className="h-12 rounded-md text-base font-semibold"
-              disabled={!event || updateEventMutation.isPending || deleteEventMutation.isPending}
+              disabled={!event || updateEventMutation.isPending}
             >
               {updateEventMutation.isPending ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </DrawerFooter>
         </form>
-        <Drawer open={confirmDelete} onOpenChange={setConfirmDelete}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>¿Eliminar evento?</DrawerTitle>
-              <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer.</p>
-            </DrawerHeader>
-            <DrawerFooter>
-              <Button
-                type="button"
-                className="bg-red-600 text-white hover:bg-red-700"
-                onClick={() => void handleDelete()}
-                disabled={deleteEventMutation.isPending}
-              >
-                {deleteEventMutation.isPending ? 'Eliminando...' : 'Sí, eliminar'}
-              </Button>
-              <DrawerClose
-                render={
-                  <Button type="button" variant="ghost">
-                    Cancelar
-                  </Button>
-                }
-              />
-            </DrawerFooter>
-          </DrawerContent>
-        </Drawer>
+        <DeleteEventDrawer
+          open={confirmDelete}
+          onOpenChange={setConfirmDelete}
+          event={event}
+          onDeleted={() => handleOpenChange(false)}
+        />
       </DrawerContent>
     </Drawer>
   )
