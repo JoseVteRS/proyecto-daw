@@ -52,20 +52,18 @@ export function DatePicker({
         }
       }}
     >
-      <DrawerTrigger
-        render={
-          <Button
-            id={id}
-            type="button"
-            variant="outline"
-            className={cn('h-10 w-full justify-start gap-2 text-left font-normal', className)}
-            disabled={disabled}
-          >
-            <CalendarDays className="size-4 shrink-0" />
-            <span className="truncate">{value ? formatDateEs(value) : placeholder}</span>
-          </Button>
-        }
-      />
+      <DrawerTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          className={cn('h-10 w-full justify-start gap-2 text-left font-normal', className)}
+          disabled={disabled}
+        >
+          <CalendarDays className="size-4 shrink-0" />
+          <span className="truncate">{value ? formatDateEs(value) : placeholder}</span>
+        </Button>
+      </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Selecciona fecha</DrawerTitle>

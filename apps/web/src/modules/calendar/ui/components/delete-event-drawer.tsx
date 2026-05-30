@@ -1,8 +1,17 @@
 import type { EventResponse } from '@proyecto-daw/shared'
 import { useState } from 'react'
 
+import { FormAlert } from '@/components/form-field'
 import { Button } from '@/components/ui/button'
-import { Drawer, DrawerClose, DrawerContent, DrawerFooter, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer'
 import { useDeleteEventMutation } from '@/modules/calendar/queries/use-delete-event-mutation'
 
 type DeleteEventDrawerProps = {
@@ -43,29 +52,27 @@ export function DeleteEventDrawer({ open, onOpenChange, event, onDeleted }: Dele
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>¿Eliminar evento?</DrawerTitle>
-          <p className="text-sm text-muted-foreground">Esta acción no se puede deshacer.</p>
+          <DrawerDescription>Esta acción no se puede deshacer.</DrawerDescription>
         </DrawerHeader>
         {error ? (
-          <div role="alert" className="mx-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-            {error}
+          <div className="px-4">
+            <FormAlert message={error} />
           </div>
         ) : null}
         <DrawerFooter>
           <Button
             type="button"
-            className="bg-red-600 text-white hover:bg-red-700"
+            variant="destructive"
             onClick={() => void handleDelete()}
             disabled={deleteEventMutation.isPending}
           >
             {deleteEventMutation.isPending ? 'Eliminando...' : 'Sí, eliminar'}
           </Button>
-          <DrawerClose
-            render={
-              <Button type="button" variant="ghost">
-                Cancelar
-              </Button>
-            }
-          />
+          <DrawerClose asChild>
+            <Button type="button" variant="ghost">
+              Cancelar
+            </Button>
+          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

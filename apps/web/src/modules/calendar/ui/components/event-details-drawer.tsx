@@ -1,12 +1,14 @@
 import type { EventResponse } from '@proyecto-daw/shared'
 import { useForm } from '@tanstack/react-form'
 import { Trash2, X } from 'lucide-react'
-import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { DatePicker } from '@/components/date-picker'
-import { TimePicker } from '@/components/time-picker'
+import { FormAlert, FormField } from '@/components/form-field'
+import { TimeSelect } from '@/components/time-select'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Drawer,
   DrawerClose,
@@ -15,10 +17,11 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from '@/components/ui/drawer'
+import { Field, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { addDays, formatWeekdayDateEs, setTime } from '@/lib/date'
-import { cn } from '@/lib/utils'
 import { useUpdateEventMutation } from '@/modules/calendar/queries/use-update-event-mutation'
 import { DeleteEventDrawer } from '@/modules/calendar/ui/components/delete-event-drawer'
 
@@ -149,13 +152,11 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
         <DrawerHeader className="flex-row items-center justify-between gap-2 pb-3">
           <DrawerTitle>Editar evento</DrawerTitle>
           <div className="flex items-center gap-1">
-            <DrawerClose
-              render={
-                <Button type="button" variant="ghost" size="icon" aria-label="Cerrar formulario">
-                  <X className="size-4" />
-                </Button>
-              }
-            />
+            <DrawerClose asChild>
+              <Button type="button" variant="ghost" size="icon" aria-label="Cerrar formulario">
+                <X className="size-4" />
+              </Button>
+            </DrawerClose>
             <Button
               type="button"
               variant="ghost"
@@ -189,7 +190,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             }}
           >
             {(field) => (
-              <FormRow>
+              <FormField label="Título del evento" htmlFor={field.name} hideLabel errors={field.state.meta.errors}>
                 <Input
                   id={field.name}
                   name={field.name}
@@ -202,8 +203,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                   required
                   disabled={!event}
                 />
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
+              </FormField>
             )}
           </form.Field>
 
@@ -215,8 +215,8 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             }}
           >
             {(field) => (
-              <FormRow>
-                <Input
+              <FormField label="Descripción del evento" htmlFor={field.name} hideLabel errors={field.state.meta.errors}>
+                <Textarea
                   id={field.name}
                   name={field.name}
                   maxLength={2000}
@@ -224,49 +224,12 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                   onBlur={field.handleBlur}
                   onChange={(changeEvent) => field.handleChange(changeEvent.target.value)}
                   placeholder="Añadir descripción"
-                  className="h-auto border-0 px-0 text-sm text-muted-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
+                  className="min-h-0 border-0 px-0 text-sm text-muted-foreground shadow-none placeholder:text-muted-foreground focus-visible:ring-0"
                   disabled={!event}
                 />
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
+              </FormField>
             )}
           </form.Field>
-
-          <Card className="rounded-2xl border-0 bg-muted/40 px-4 py-3 shadow-none">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-base font-semibold text-foreground">Todo el día</p>
-                <p className="text-sm text-muted-foreground">Sin horario específico</p>
-              </div>
-              <Switch
-                checked={allDay}
-                className="h-6 w-10 [&_span]:size-5 [&_span]:data-checked:translate-x-4"
-                onCheckedChange={(checked) => {
-                  const nextAllDay = Boolean(checked)
-                  setAllDay(nextAllDay)
-                  const currentStart = form.state.values.eventDateStart
-                  const currentEnd = form.state.values.eventDateEnd
-
-                  if (nextAllDay) {
-                    const range = toAllDayRange(currentStart, currentEnd)
-                    form.setFieldValue('eventDateStart', range.start)
-                    form.setFieldValue('eventDateEnd', range.end)
-                    return
-                  }
-
-                  const nextStart = setTime(currentStart, 9, 0)
-                  form.setFieldValue('eventDateStart', nextStart)
-                  form.setFieldValue(
-                    'eventDateEnd',
-                    isMultiDay
-                      ? setTime(addDays(nextStart, getDayDelta(currentStart, currentEnd)), 10, 0)
-                      : clampEndSameDay(nextStart),
-                  )
-                }}
-                aria-label="Todo el día"
-              />
-            </div>
-          </Card>
 
           <form.Field
             name="eventDateStart"
@@ -275,7 +238,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
             }}
           >
             {(field) => (
-              <FormRow>
+              <FormField label="Fecha" hideLabel errors={field.state.meta.errors}>
                 <Card className="rounded-2xl border-0 bg-muted/40 px-4 py-3 shadow-none">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-base font-semibold text-foreground">Fecha</p>
@@ -317,9 +280,10 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                     />
                   </div>
                   <div className="mt-2 border-t border-border/50 pt-2">
-                    <button
+                    <Button
                       type="button"
-                      className="text-sm font-semibold text-muted-foreground disabled:opacity-50"
+                      variant="link"
+                      className="h-auto p-0 text-sm font-semibold text-muted-foreground disabled:opacity-50"
                       disabled={!event}
                       onClick={() => {
                         const nextMultiDay = !isMultiDay
@@ -334,7 +298,7 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                       }}
                     >
                       {isMultiDay ? '- Quitar multi-día' : '+ Hacer multi-día'}
-                    </button>
+                    </Button>
                   </div>
                   {isMultiDay ? (
                     <div className="mt-3">
@@ -365,119 +329,152 @@ export function EventDetailsDrawer({ open, onOpenChange, event }: EventDetailsDr
                     </div>
                   ) : null}
                 </Card>
-                <FieldError errors={field.state.meta.errors} />
-              </FormRow>
+              </FormField>
             )}
           </form.Field>
 
-          {!allDay ? (
-            <div className="grid grid-cols-2 gap-3">
-              <form.Field
-                name="eventDateStart"
-                validators={{
-                  onChange: ({ value }) => (!value ? 'Fecha de inicio obligatoria.' : undefined),
-                }}
-              >
-                {(field) => (
-                  <FormRow>
-                    <p className="text-xs font-semibold tracking-wide text-muted-foreground">INICIO</p>
-                    <TimePicker
-                      id={`${field.name}-time-start`}
-                      value={field.state.value}
-                      onChange={(next) => {
-                        const pickedTime = next ?? new Date()
-                        const nextStart = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
-                        field.handleChange(nextStart)
-                        if (!isMultiDay) {
-                          form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
-                          return
-                        }
-                        if (form.state.values.eventDateEnd.getTime() <= nextStart.getTime()) {
-                          form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
-                        }
-                      }}
-                      disabled={!event}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </FormRow>
-                )}
-              </form.Field>
+          <Card className="rounded-2xl border-0 bg-muted/40 px-4 py-3 shadow-none">
+            <Field orientation="horizontal" className="items-center justify-between">
+              <FieldLabel className="text-base font-semibold">Todo el día</FieldLabel>
+              <Checkbox
+                checked={allDay}
+                disabled={!event}
+                onCheckedChange={(checked) => {
+                  const nextAllDay = checked === true
+                  setAllDay(nextAllDay)
+                  const currentStart = form.state.values.eventDateStart
+                  const currentEnd = form.state.values.eventDateEnd
 
-              <form.Field
-                name="eventDateEnd"
-                validators={{
-                  onChangeListenTo: ['eventDateStart'],
-                  onChange: ({ value, fieldApi }) => {
-                    if (!value) return 'Fecha de fin obligatoria.'
-                    const start = fieldApi.form.getFieldValue('eventDateStart')
-                    if (start && value.getTime() <= start.getTime()) {
-                      return 'Debe ser posterior al inicio.'
-                    }
-                    return undefined
-                  },
+                  if (nextAllDay) {
+                    const range = toAllDayRange(currentStart, currentEnd)
+                    form.setFieldValue('eventDateStart', range.start)
+                    form.setFieldValue('eventDateEnd', range.end)
+                    return
+                  }
+
+                  const nextStart = setTime(currentStart, 9, 0)
+                  form.setFieldValue('eventDateStart', nextStart)
+                  form.setFieldValue(
+                    'eventDateEnd',
+                    isMultiDay
+                      ? setTime(addDays(nextStart, getDayDelta(currentStart, currentEnd)), 10, 0)
+                      : clampEndSameDay(nextStart),
+                  )
                 }}
-              >
-                {(field) => (
-                  <FormRow>
-                    <p className="text-xs font-semibold tracking-wide text-muted-foreground">FIN</p>
-                    <TimePicker
-                      id={`${field.name}-time-end`}
-                      value={field.state.value}
-                      onChange={(next) => {
-                        const pickedTime = next ?? new Date()
-                        const nextEnd = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
-                        field.handleChange(nextEnd)
-                      }}
-                      disabled={!event}
-                    />
-                    <FieldError errors={field.state.meta.errors} />
-                  </FormRow>
-                )}
-              </form.Field>
+                aria-label="Todo el día"
+              />
+            </Field>
+          </Card>
+
+          {!allDay ? (
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <div className="min-w-0 flex-1">
+                  <form.Field
+                    name="eventDateStart"
+                    validators={{
+                      onChange: ({ value }) => (!value ? 'Fecha de inicio obligatoria.' : undefined),
+                    }}
+                  >
+                    {(field) => (
+                      <FormField label="Hora de inicio" hideLabel errors={field.state.meta.errors}>
+                        <TimeSelect
+                          id={`${field.name}-time-start`}
+                          value={field.state.value}
+                          ariaLabel="Hora de inicio"
+                          onChange={(next) => {
+                            const pickedTime = next ?? new Date()
+                            const nextStart = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
+                            field.handleChange(nextStart)
+                            if (!isMultiDay) {
+                              form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
+                              return
+                            }
+                            if (form.state.values.eventDateEnd.getTime() <= nextStart.getTime()) {
+                              form.setFieldValue('eventDateEnd', clampEndSameDay(nextStart))
+                            }
+                          }}
+                          disabled={!event}
+                        />
+                      </FormField>
+                    )}
+                  </form.Field>
+                </div>
+
+                <span className="pt-2 text-base font-semibold text-muted-foreground">-</span>
+
+                <div className="min-w-0 flex-1">
+                  <form.Field
+                    name="eventDateEnd"
+                    validators={{
+                      onChangeListenTo: ['eventDateStart'],
+                      onChange: ({ value, fieldApi }) => {
+                        if (!value) return 'Fecha de fin obligatoria.'
+                        const start = fieldApi.form.getFieldValue('eventDateStart')
+                        if (start && value.getTime() <= start.getTime()) {
+                          return 'Debe ser posterior al inicio.'
+                        }
+                        return undefined
+                      },
+                    }}
+                  >
+                    {(field) => (
+                      <FormField label="Hora de fin" hideLabel errors={field.state.meta.errors}>
+                        <TimeSelect
+                          id={`${field.name}-time-end`}
+                          value={field.state.value}
+                          ariaLabel="Hora de fin"
+                          onChange={(next) => {
+                            const pickedTime = next ?? new Date()
+                            const nextEnd = setTime(field.state.value, pickedTime.getHours(), pickedTime.getMinutes())
+                            field.handleChange(nextEnd)
+                          }}
+                          disabled={!event}
+                        />
+                      </FormField>
+                    )}
+                  </form.Field>
+                </div>
+              </div>
             </div>
           ) : null}
 
           <form.Field name="priorityId">
             {(field) => (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold tracking-wide text-muted-foreground">IMPORTANCIA</p>
-                <div className="inline-flex rounded-full bg-muted/70 p-1 shadow-none">
-                  {priorityOptions.map((option) => {
-                    const isSelected = field.state.value === option.value
-                    return (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onBlur={field.handleBlur}
-                        onClick={() => field.handleChange(option.value)}
-                        disabled={!event}
-                        className={cn(
-                          'rounded-full px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-50',
-                          isSelected ? 'bg-foreground text-background shadow-none' : 'text-foreground hover:bg-background/70',
-                        )}
-                      >
-                        {option.label}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
+              <Field>
+                <FieldLabel className="text-xs font-semibold tracking-wide text-muted-foreground">IMPORTANCIA</FieldLabel>
+                <ToggleGroup
+                  value={[field.state.value]}
+                  onValueChange={(values: string[]) => {
+                    const next = values.at(0)
+                    if (next) field.handleChange(next as PriorityValue)
+                  }}
+                  spacing={0}
+                  className="inline-flex rounded-full bg-muted/70 p-1 shadow-none"
+                >
+                  {priorityOptions.map((option) => (
+                    <ToggleGroupItem
+                      key={option.value}
+                      value={option.value}
+                      onBlur={field.handleBlur}
+                      disabled={!event}
+                      className="rounded-full border-0 px-4 py-2 text-sm font-semibold data-checked:bg-foreground data-checked:text-background disabled:opacity-50"
+                    >
+                      {option.label}
+                    </ToggleGroupItem>
+                  ))}
+                </ToggleGroup>
+              </Field>
             )}
           </form.Field>
 
-          {error ? (
-            <div
-              role="alert"
-              className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
-            >
-              {error}
-            </div>
-          ) : null}
+          {error ? <FormAlert message={error} /> : null}
 
           <DrawerFooter className="px-0 pt-1 pb-0">
             <Button
               type="submit"
-              variant="accent"
+              variant="default"
+              size="lg"
               className="h-12 rounded-md text-base font-semibold"
               disabled={!event || updateEventMutation.isPending}
             >
@@ -511,18 +508,4 @@ function toDefaultValues(event: EventResponse['event'] | null): FormValues {
     eventDateEnd: end,
     priorityId: String(event?.priorityId ?? 2) as PriorityValue,
   }
-}
-
-function FormRow({ children }: { children: ReactNode }) {
-  return <div className="space-y-2">{children}</div>
-}
-
-function FieldError({ errors }: { errors: Array<unknown> }) {
-  const message = errors.find((fieldError) => typeof fieldError === 'string')
-
-  if (!message) {
-    return null
-  }
-
-  return <p className="text-sm text-red-600">{message}</p>
 }

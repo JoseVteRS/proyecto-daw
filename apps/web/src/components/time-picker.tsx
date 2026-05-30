@@ -53,20 +53,18 @@ export function TimePicker({
 
   return (
     <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger
-        render={
-          <Button
-            id={id}
-            type="button"
-            variant="outline"
-            className={cn('h-10 w-full justify-start gap-2 text-left font-normal', className)}
-            disabled={disabled}
-          >
-            <Clock className="size-4 shrink-0" />
-            <span className="truncate">{value ? formatTime(value) : placeholder}</span>
-          </Button>
-        }
-      />
+      <DrawerTrigger asChild>
+        <Button
+          id={id}
+          type="button"
+          variant="outline"
+          className={cn('h-10 w-full justify-start gap-2 text-left font-normal', className)}
+          disabled={disabled}
+        >
+          <Clock className="size-4 shrink-0" />
+          <span className="truncate">{value ? formatTime(value) : placeholder}</span>
+        </Button>
+      </DrawerTrigger>
 
       <DrawerContent>
         <DrawerHeader>
@@ -117,13 +115,11 @@ export function TimePicker({
           </div>
         </div>
         <DrawerFooter>
-          <DrawerClose
-            render={
-              <Button type="button" variant="accent">
-                Listo
-              </Button>
-            }
-          />
+          <DrawerClose asChild>
+            <Button type="button" variant="default">
+              Listo
+            </Button>
+          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
