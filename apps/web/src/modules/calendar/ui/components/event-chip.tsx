@@ -18,7 +18,7 @@ export function EventChip({ event, showTime = true, className }: EventChipProps)
   return (
     <Badge
       className={cn(
-        'flex max-w-full truncate rounded-xs border-0 px-0.5 py-0.5 text-[9px]  leading-none',
+        'flex max-w-full truncate rounded-xs border-0 px-0.5 py-0.5 text-[9px] leading-none',
         chipColorClasses[event.color],
         className,
       )}
